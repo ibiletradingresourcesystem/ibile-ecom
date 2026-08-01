@@ -927,9 +927,12 @@ a {
 }
 
 .market-product-card__qty {
-  display: grid;
-  grid-template-columns: repeat(3, 30px);
-  grid-template-rows: 30px;
+  display: flex;
+  width: 90px;
+  height: 30px;
+  flex: 0 0 90px;
+  flex-direction: row;
+  align-items: stretch;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--brand);
