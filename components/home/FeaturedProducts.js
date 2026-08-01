@@ -76,7 +76,6 @@ export default function FeaturedProducts() {
           <a href={`tel:${storePhone}`}><Headphones /> {storePhone}</a>
         </section>
       )}
-      </section>
     </div>
   );
 }
