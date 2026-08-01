@@ -13,7 +13,7 @@ export default function ProductsPage() {
     <div className="catalog-page">
       <div className="catalog-page__toolbar">
         <div>
-          <p>Ibile Mart catalogue</p>
+          <p>IbileMart Store catalogue</p>
           <h1>{categoryFilter || (searchFilter ? `Results for “${searchFilter}”` : "All products")}</h1>
         </div>
         <button

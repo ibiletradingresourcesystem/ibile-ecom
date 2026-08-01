@@ -456,6 +456,194 @@ a {
   object-fit: contain;
 }
 
+/* ========== Hero Banner (Campaign-aware) ========== */
+
+.hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d4451a 0%, #f47721 40%, #e8943a 100%);
+  color: #fff;
+}
+
+.hero-banner--loading {
+  min-height: 340px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.hero-banner__bg {
+  object-fit: cover;
+  z-index: 0;
+}
+
+.hero-banner__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 340px;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: center;
+  gap: 20px;
+}
+
+.hero-banner__inner.has-bg::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.45), transparent 70%);
+  content: "";
+  z-index: -1;
+}
+
+.hero-banner__content {
+  padding: 40px 44px;
+}
+
+.hero-banner__tag {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.hero-banner__content h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.hero-banner__content p {
+  max-width: 520px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.92;
+}
+
+.hero-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.hero-banner__cta {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 5px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  color: inherit;
+}
+
+.hero-banner__cta svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-banner__cta--primary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.hero-banner__cta--secondary {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hero-banner__visual {
+  align-self: end;
+  justify-self: center;
+  line-height: 0;
+  padding-right: 20px;
+}
+
+.hero-banner__visual img {
+  width: min(30vw, 360px);
+  height: auto;
+  object-fit: contain;
+}
+
+.hero-banner__nav {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.hero-banner__nav > button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+}
+
+.hero-banner__nav > button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-banner__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.hero-banner__dots button {
+  width: 8px;
+  height: 8px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hero-banner__dots button.is-active {
+  width: 22px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .hero-banner__inner {
+    grid-template-columns: 1fr;
+    min-height: 280px;
+  }
+
+  .hero-banner__content {
+    padding: 28px 24px;
+  }
+
+  .hero-banner__content h1 {
+    font-size: 28px;
+  }
+
+  .hero-banner__visual {
+    display: none;
+  }
+}
+
+/* ========== End Hero Banner ========== */
+
 .market-benefits {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -736,6 +924,62 @@ a {
 
 .market-product-card__footer button svg {
   width: 18px;
+}
+
+.market-product-card__qty {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--brand);
+}
+
+.market-product-card__qty button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.market-product-card__qty button:disabled {
+  background: #c6c6c6;
+  cursor: not-allowed;
+}
+
+.market-product-card__qty button svg {
+  width: 14px;
+}
+
+.market-product-card__qty span {
+  display: grid;
+  min-width: 28px;
+  height: 30px;
+  place-items: center;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.market-product-card__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: linear-gradient(135deg, #f5f5f5, #ececec);
+  color: #bbb;
+}
+
+.market-product-card__placeholder svg {
+  width: 40px;
+  height: 40px;
 }
 
 .market-empty {

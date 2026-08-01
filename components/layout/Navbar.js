@@ -17,7 +17,7 @@ export default function Nav() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const storeName = store?.storeName || store?.companyName || "Ibile Mart";
+  const storeName = store?.storeName || store?.companyName || "IbileMart Store";
   const storePhone = store?.storePhone || "";
 
   const handleSearch = (event) => {

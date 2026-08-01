@@ -1,14 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Headphones, PackageCheck, PhoneCall, Truck } from "lucide-react";
+import { ArrowRight, Headphones, PackageCheck, Truck } from "lucide-react";
 
 import ProductCard from "@/components/product/ProductCard";
 import ProductCategory from "@/components/layout/ProductCategory";
+import HeroBanner from "@/components/home/HeroBanner";
+import { useStore } from "@/context/StoreContext";
 
 export default function FeaturedProducts() {
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { store } = useStore();
+  const storePhone = store?.storePhone || "";
 
   useEffect(() => {
     async function fetchProducts() {
@@ -29,30 +32,12 @@ export default function FeaturedProducts() {
 
   return (
     <div className="market-home">
-      <section className="market-hero" aria-labelledby="market-hero-title">
-        <Image src="/images/bg2.jpg" alt="" fill priority sizes="100vw" className="market-hero__background" />
-        <div className="market-hero__content">
-          <p className="market-hero__eyebrow">Stocked for everyday living</p>
-          <h1 id="market-hero-title">Everything you need, ready when you need it.</h1>
-          <p>Shop groceries, home essentials, personal care and more from Ibile Mart&apos;s live inventory.</p>
-          <div className="market-hero__actions">
-            <Link href="/products" className="market-button market-button--dark">
-              Shop all products <ArrowRight />
-            </Link>
-            <a href="tel:02018883300" className="market-button market-button--light">
-              <PhoneCall /> Call to order
-            </a>
-          </div>
-        </div>
-        <div className="market-hero__visual" aria-hidden="true">
-          <Image src="/images/freeDelivery.png" alt="" width={420} height={420} priority />
-        </div>
-      </section>
+      <HeroBanner />
 
       <section className="market-benefits" aria-label="Shopping benefits">
         <div><Truck /><span><strong>Flexible delivery</strong><small>Confirmed when we call</small></span></div>
         <div><PackageCheck /><span><strong>Stock</strong><small>Inventory-backed availability</small></span></div>
-        <div><Headphones /><span><strong>Human support</strong><small>Call 0201 888 3300</small></span></div>
+        <div><Headphones /><span><strong>Human support</strong><small>{storePhone ? `Call ${storePhone}` : "Contact us"}</small></span></div>
       </section>
 
       <ProductCategory />
@@ -81,13 +66,16 @@ export default function FeaturedProducts() {
         )}
       </section>
 
-      <section className="market-callout">
-        <div>
-          <p>Prefer to speak with someone?</p>
-          <h2>Place your order by phone.</h2>
-          <span>Our team will confirm availability, payment and delivery details directly.</span>
-        </div>
-        <a href="tel:02018883300"><PhoneCall /> 0201 888 3300</a>
+      {storePhone && (
+        <section className="market-callout">
+          <div>
+            <p>Prefer to speak with someone?</p>
+            <h2>Place your order by phone.</h2>
+            <span>Our team will confirm availability, payment and delivery details directly.</span>
+          </div>
+          <a href={`tel:${storePhone}`}><Headphones /> {storePhone}</a>
+        </section>
+      )}
       </section>
     </div>
   );

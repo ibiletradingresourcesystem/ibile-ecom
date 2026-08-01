@@ -1,33 +1,52 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Minus, Plus, Package } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 
 
 
 export default function ProductCard({ product, badge }) {
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
   const productImage =
     product.images && product.images[0]
       ? product.images[0]
-      : product.image || "/images/productImaHolder.jpg";
+      : product.image || null;
   const productPrice = Number(product.price || 0);
   const availableQuantity = Number(product.availableQuantity);
   const hasStockLimit = Number.isFinite(availableQuantity) && availableQuantity < 999999;
   const isInStock = product.isInStock !== false && (!hasStockLimit || availableQuantity > 0);
 
+  const cartItem = cart.find((item) => item._id === product._id);
+  const cartQty = cartItem ? cartItem.quantity : 0;
+
+  const handleAdd = () => addToCart(product);
+  const handleIncrease = () => updateQuantity(product._id, cartQty + 1);
+  const handleDecrease = () => {
+    if (cartQty <= 1) {
+      removeFromCart(product._id);
+    } else {
+      updateQuantity(product._id, cartQty - 1);
+    }
+  };
+
   
   return (
     <article className="market-product-card">
       <Link href={`/products/${product._id}`} className="market-product-card__image">
-        <Image
-          src={productImage}
-          alt={product.name}
-          fill
-          quality={75}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 220px"
-          className="object-contain"
-        />
+        {productImage ? (
+          <Image
+            src={productImage}
+            alt={product.name}
+            fill
+            quality={75}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 220px"
+            className="object-contain"
+          />
+        ) : (
+          <span className="market-product-card__placeholder">
+            <Package />
+          </span>
+        )}
         {badge && <span className="market-product-card__badge">{badge}</span>}
       </Link>
       <div className="market-product-card__body">
@@ -38,9 +57,21 @@ export default function ProductCard({ product, badge }) {
             <strong>₦{Math.ceil(productPrice).toLocaleString()}</strong>
             {hasStockLimit && <small className={isInStock ? "is-available" : "is-unavailable"}>{isInStock ? `${availableQuantity} left` : "Out of stock"}</small>}
           </div>
-          <button type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`} disabled={!isInStock}>
-            <Plus />
-          </button>
+          {cartQty > 0 ? (
+            <div className="market-product-card__qty">
+              <button type="button" onClick={handleDecrease} aria-label="Decrease quantity">
+                <Minus />
+              </button>
+              <span>{cartQty}</span>
+              <button type="button" onClick={handleIncrease} aria-label="Increase quantity" disabled={hasStockLimit && cartQty >= availableQuantity}>
+                <Plus />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={handleAdd} aria-label={`Add ${product.name} to cart`} disabled={!isInStock}>
+              <Plus />
+            </button>
+          )}
         </div>
       </div>
     </article>

@@ -3,6 +3,7 @@ import { Grid2X2, Home, Phone, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/router";
 
 import { useCart } from "@/context/CartContext";
+import { useStore } from "@/context/StoreContext";
 
 const navigationItems = [
   { href: "/", label: "Home", icon: Home },
@@ -13,7 +14,9 @@ const navigationItems = [
 export default function MobileNavigation() {
   const router = useRouter();
   const { cart } = useCart();
+  const { store } = useStore();
   const cartCount = cart.reduce((total, item) => total + Number(item.quantity || 0), 0);
+  const storePhone = store?.storePhone || "";
 
   return (
     <nav className="mobile-navigation" aria-label="Mobile navigation">
@@ -30,10 +33,12 @@ export default function MobileNavigation() {
           </Link>
         );
       })}
-      <a href="tel:02018883300" className="mobile-navigation__item">
-        <span className="mobile-navigation__icon"><Phone aria-hidden="true" /></span>
-        <span>Call</span>
-      </a>
+      {storePhone && (
+        <a href={`tel:${storePhone}`} className="mobile-navigation__item">
+          <span className="mobile-navigation__icon"><Phone aria-hidden="true" /></span>
+          <span>Call</span>
+        </a>
+      )}
     </nav>
   );
 }

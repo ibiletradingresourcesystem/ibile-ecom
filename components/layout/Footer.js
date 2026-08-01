@@ -5,7 +5,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { store } = useStore();
 
-  const storeName = store?.storeName || store?.companyName || "Ibile Mart";
+  const storeName = store?.storeName || store?.companyName || "IbileMart Store";
   const phone = store?.storePhone || "";
   const address = store?.companyAddress || "";
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
-import { Minus, PhoneCall, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Package, PhoneCall, Plus, ShoppingCart } from "lucide-react";
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -35,12 +35,13 @@ export default function ProductView({ product }) {
   const productImage =
     product.images && product.images[0]
       ? product.images[0]
-      : product.image || "/images/productImaHolder.jpg";
+      : product.image || null;
 
   return (
     <section className="product-detail">
       <div className="product-detail__layout">
         <div className="product-detail__image">
+          {productImage ? (
             <Image
               src={productImage}
               alt={product.name}
@@ -48,6 +49,11 @@ export default function ProductView({ product }) {
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-contain"
             />
+          ) : (
+            <span className="market-product-card__placeholder" style={{ borderRadius: 12 }}>
+              <Package style={{ width: 64, height: 64 }} />
+            </span>
+          )}
         </div>
 
         <div className="product-detail__content">

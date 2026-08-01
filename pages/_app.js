@@ -10,10 +10,10 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Ibile Mart Store</title>
+        <title>IbileMart Store</title>
         <meta
           name="description"
-          content="Shop Ibile Mart Store for groceries, household essentials, personal care, beverages, and everyday deals."
+          content="Shop IbileMart Store for groceries, household essentials, personal care, beverages, and everyday deals."
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
