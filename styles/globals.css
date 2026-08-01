@@ -928,7 +928,7 @@ a {
 
 .market-product-card__qty {
   display: grid;
-  grid-template-rows: repeat(3, 28px);
+  grid-template-columns: repeat(3, 28px);
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--brand);
