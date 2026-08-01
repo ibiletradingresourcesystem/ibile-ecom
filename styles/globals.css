@@ -927,12 +927,10 @@ a {
 }
 
 .market-product-card__qty {
-  display: flex;
-  width: 90px;
-  height: 30px;
-  flex: 0 0 90px;
+  display: inline-flex;
+  flex: none;
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--brand);
@@ -940,8 +938,8 @@ a {
 
 .market-product-card__qty button {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 0;
   border-radius: 0;
@@ -958,17 +956,19 @@ a {
 
 .market-product-card__qty button svg {
   width: 14px;
+  height: 14px;
 }
 
 .market-product-card__qty span {
   display: grid;
-  width: 30px;
-  height: 30px;
+  min-width: 26px;
+  height: 28px;
   place-items: center;
   background: #fff;
   color: var(--ink);
   font-size: 13px;
   font-weight: 800;
+  padding: 0 2px;
 }
 
 .market-product-card__placeholder {
