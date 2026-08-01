@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
-import { Minus, Package, PhoneCall, Plus, ShoppingCart } from "lucide-react";
+import { Minus, PhoneCall, Plus, ShoppingCart } from "lucide-react";
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -10,14 +10,17 @@ import {
   WhatsappIcon,
 } from "react-share";
 import { useCart } from "@/context/CartContext";
+import { getCategoryIcon } from "@/lib/categoryIcons";
 
 export default function ProductView({ product }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const { addToCart } = useCart();
   const availableQuantity = Number(product.availableQuantity);
   const hasStockLimit = Number.isFinite(availableQuantity) && availableQuantity < 999999;
   const isInStock = product.isInStock !== false && (!hasStockLimit || availableQuantity > 0);
+  const CategoryIcon = getCategoryIcon(product.categoryIcon, product.category);
 
   const handleIncrease = () =>
     setQuantity((prev) => {
@@ -41,17 +44,18 @@ export default function ProductView({ product }) {
     <section className="product-detail">
       <div className="product-detail__layout">
         <div className="product-detail__image">
-          {productImage ? (
+          {productImage && !imageFailed ? (
             <Image
               src={productImage}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-contain"
+              onError={() => setImageFailed(true)}
             />
           ) : (
             <span className="market-product-card__placeholder" style={{ borderRadius: 12 }}>
-              <Package style={{ width: 64, height: 64 }} />
+              <CategoryIcon style={{ width: 64, height: 64 }} aria-hidden="true" />
             </span>
           )}
         </div>

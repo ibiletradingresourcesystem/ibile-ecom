@@ -1,39 +1,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Baby,
-  Beef,
-  Boxes,
-  Croissant,
-  CupSoda,
-  HeartPulse,
-  Home,
-  Snowflake,
-  Sparkles,
-  Utensils,
-} from "lucide-react";
+import { getCategoryIcon } from "@/lib/categoryIcons";
 
 export default function ProductCategory() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const categoryIcons = {
-    baby: Baby,
-    bakery: Croissant,
-    beverage: CupSoda,
-    breakfast: Utensils,
-    cleaning: Sparkles,
-    frozen: Snowflake,
-    home: Home,
-    meat: Beef,
-    personal: HeartPulse,
-  };
-
-  const getIcon = (name) => {
-    const normalizedName = String(name || "").toLowerCase();
-    const matchedKey = Object.keys(categoryIcons).find((key) => normalizedName.includes(key));
-    return matchedKey ? categoryIcons[matchedKey] : Boxes;
-  };
 
   useEffect(() => {
     async function fetchCategories() {
@@ -73,7 +44,7 @@ export default function ProductCategory() {
       </div>
       <div className="market-category-grid">
         {categories.slice(0, 10).map((category) => {
-          const Icon = getIcon(category.name);
+          const Icon = getCategoryIcon(category.icon, category.name);
           return (
             <Link key={category._id} href={`/products?category=${encodeURIComponent(category.name)}`} className="market-category">
               <span><Icon /></span>

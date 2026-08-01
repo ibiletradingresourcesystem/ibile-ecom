@@ -5,7 +5,6 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { store } = useStore();
 
-  const storeName = store?.storeName || store?.companyName || "IbileMart Store";
   const phone = store?.storePhone || "";
   const address = store?.companyAddress || "";
 
@@ -13,7 +12,7 @@ export default function Footer() {
     <footer className="store-footer">
       <div className="store-footer__inner">
         <div>
-          <strong>{storeName}</strong>
+          <strong>IbileMart Store</strong>
           <p>Everyday essentials with live inventory and direct customer support.</p>
           {address && <p className="text-sm opacity-75">{address}</p>}
         </div>
@@ -24,7 +23,7 @@ export default function Footer() {
           <span>Payment and delivery are confirmed by phone.</span>
         </div>
       </div>
-      <div className="store-footer__bottom">&copy; {currentYear} {storeName}. All rights reserved.</div>
+      <div className="store-footer__bottom">&copy; {currentYear} IbileMart Store. All rights reserved.</div>
     </footer>
   );
 }

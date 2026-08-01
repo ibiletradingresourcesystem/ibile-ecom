@@ -927,9 +927,8 @@ a {
 }
 
 .market-product-card__qty {
-  display: flex;
-  align-items: center;
-  gap: 0;
+  display: grid;
+  grid-template-rows: repeat(3, 28px);
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--brand);
@@ -937,8 +936,8 @@ a {
 
 .market-product-card__qty button {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 28px;
   place-items: center;
   border: 0;
   border-radius: 0;
@@ -959,8 +958,8 @@ a {
 
 .market-product-card__qty span {
   display: grid;
-  min-width: 28px;
-  height: 30px;
+  width: 32px;
+  height: 28px;
   place-items: center;
   background: #fff;
   color: var(--ink);

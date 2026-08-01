@@ -1,17 +1,21 @@
 import Link from "next/link";
-import { Minus, Plus, Package } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { getCategoryIcon } from "@/lib/categoryIcons";
 
 
 
 export default function ProductCard({ product, badge }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
   const productImage =
     product.images && product.images[0]
       ? product.images[0]
       : product.image || null;
   const productPrice = Number(product.price || 0);
+  const CategoryIcon = getCategoryIcon(product.categoryIcon, product.category);
   const availableQuantity = Number(product.availableQuantity);
   const hasStockLimit = Number.isFinite(availableQuantity) && availableQuantity < 999999;
   const isInStock = product.isInStock !== false && (!hasStockLimit || availableQuantity > 0);
@@ -33,7 +37,7 @@ export default function ProductCard({ product, badge }) {
   return (
     <article className="market-product-card">
       <Link href={`/products/${product._id}`} className="market-product-card__image">
-        {productImage ? (
+        {productImage && !imageFailed ? (
           <Image
             src={productImage}
             alt={product.name}
@@ -41,10 +45,11 @@ export default function ProductCard({ product, badge }) {
             quality={75}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 220px"
             className="object-contain"
+            onError={() => setImageFailed(true)}
           />
         ) : (
           <span className="market-product-card__placeholder">
-            <Package />
+            <CategoryIcon aria-hidden="true" />
           </span>
         )}
         {badge && <span className="market-product-card__badge">{badge}</span>}

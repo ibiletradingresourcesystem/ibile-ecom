@@ -17,7 +17,6 @@ export default function Nav() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const storeName = store?.storeName || store?.companyName || "IbileMart Store";
   const storePhone = store?.storePhone || "";
 
   const handleSearch = (event) => {
@@ -44,7 +43,7 @@ export default function Nav() {
                   className="object-cover"
               />
               </span>
-              <span className="store-header__brand-name">{storeName}</span>
+              <span className="store-header__brand-name">IbileMart Store</span>
             </Link>
 
             <form className="store-search" role="search" onSubmit={handleSearch}>
@@ -82,7 +81,7 @@ export default function Nav() {
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search on {storeName}"
+              placeholder="Search on IbileMart Store"
               aria-label="Search products"
             />
           </form>
