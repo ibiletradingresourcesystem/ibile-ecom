@@ -5,16 +5,20 @@ import { Menu, Phone, Search, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCart } from "@/context/CartContext";
+import { useStore } from "@/context/StoreContext";
 import { useState } from "react";
 import CartSidebar from "@/components/cart/CartSidebar";
 
 export default function Nav() {
   const router = useRouter();
   const { cart } = useCart();
+  const { store } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const storeName = store?.storeName || store?.companyName || "Ibile Mart";
+  const storePhone = store?.storePhone || "";
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -40,7 +44,7 @@ export default function Nav() {
                   className="object-cover"
               />
               </span>
-              <span className="store-header__brand-name">Ibile Mart</span>
+              <span className="store-header__brand-name">{storeName}</span>
             </Link>
 
             <form className="store-search" role="search" onSubmit={handleSearch}>
@@ -56,10 +60,12 @@ export default function Nav() {
             </form>
 
             <div className="store-header__actions">
-              <a href="tel:02018883300" className="store-header__action store-header__call">
-                <Phone />
-                <span><small>Call to order</small>0201 888 3300</span>
-              </a>
+              {storePhone && (
+                <a href={`tel:${storePhone}`} className="store-header__action store-header__call">
+                  <Phone />
+                  <span><small>Call to order</small>{storePhone}</span>
+                </a>
+              )}
               <button type="button" onClick={() => setSidebarOpen(true)} className="store-header__action store-header__cart" aria-label="Open cart">
                 <span className="store-header__cart-icon">
                   <ShoppingCart />
@@ -76,14 +82,14 @@ export default function Nav() {
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search on Ibile Mart"
+              placeholder="Search on {storeName}"
               aria-label="Search products"
             />
           </form>
         </div>
         <div className="store-header__strip">
           <div className="store-header__strip-inner">
-            <span>Call to order: 0201 888 3300</span>
+            {storePhone && <span>Call to order: {storePhone}</span>}
             <span className="store-header__strip-message">Everyday essentials, reliable stock, straightforward ordering.</span>
           </div>
         </div>

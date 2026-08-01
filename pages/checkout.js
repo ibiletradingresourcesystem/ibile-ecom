@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowLeft, MapPin, PackageCheck, PhoneCall, ShieldCheck, Truck } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
+import { useStore } from "@/context/StoreContext";
 
 const initialForm = {
   name: "",
@@ -15,7 +16,9 @@ const initialForm = {
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, totalAmount, clearCart } = useCart();
+  const { store } = useStore();
   const [form, setForm] = useState(initialForm);
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,12 +39,15 @@ export default function CheckoutPage() {
     setStatus({ type: "idle", message: "" });
 
     try {
+      const location = store?.locations?.find((loc) => loc._id === selectedLocation);
       const orderResponse = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cart.map((item) => ({ productId: item._id, quantity: item.quantity })),
           customer: form,
+          locationId: selectedLocation || undefined,
+          locationName: location?.name || "",
         }),
       });
       const orderData = await orderResponse.json();
@@ -53,7 +59,7 @@ export default function CheckoutPage() {
       clearCart();
       setStatus({
         type: "success",
-        message: `Order ${orderData.order.id} has been reserved. A store representative will call to confirm payment and delivery.`,
+        message: `Order ${orderData.order.id} placed successfully. A store representative will call to confirm payment and delivery.`,
       });
     } catch (error) {
       setStatus({ type: "error", message: error.message || "Checkout failed." });
@@ -134,6 +140,23 @@ export default function CheckoutPage() {
                   rows={4}
                 />
               </label>
+
+              {store?.locations?.length > 1 && (
+                <label>
+                  Preferred store location
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                  >
+                    <option value="">Select a location</option>
+                    {store.locations.map((loc) => (
+                      <option key={loc._id} value={loc._id}>
+                        {loc.name}{loc.address ? ` — ${loc.address}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
 
             <div className="checkout-call-note">
@@ -156,7 +179,7 @@ export default function CheckoutPage() {
               disabled={submitting || cart.length === 0}
               className="checkout-submit"
             >
-              {submitting ? "Processing..." : "Place reserved order"}
+              {submitting ? "Processing..." : "Place order"}
             </button>
           </form>
 
@@ -208,11 +231,11 @@ export default function CheckoutPage() {
 
             <div className="checkout-summary__note">
               <MapPin />
-              <span>Orders are written into the shared Ibile inventory/POS workflow for fulfilment and stock control.</span>
+              <span>Orders are processed through the Ibile inventory workflow for fulfilment and stock control.</span>
             </div>
             <div className="checkout-summary__note checkout-summary__note--stock">
               <PackageCheck />
-              <span>Stock is reserved at checkout and finalized later by the contact-call staff, POS, or admin workflow.</span>
+              <span>Stock availability is confirmed when the order is placed.</span>
             </div>
           </aside>
         </div>

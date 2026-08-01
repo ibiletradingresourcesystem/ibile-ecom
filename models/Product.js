@@ -18,12 +18,6 @@ const ProductSchema = new Schema(
     margin: { type: Number, default: 0 },
     barcode: { type: String, default: "" },
     category: { type: String, default: "Top Level" },
-    productType: {
-      type: String,
-      enum: ["standard", "room"],
-      default: "standard",
-      index: true,
-    },
     images: { type: [ProductImageSchema], default: [] },
     properties: [{ type: Object }],
     quantity: { type: Number, default: 0 },
