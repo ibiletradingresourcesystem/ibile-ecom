@@ -12,7 +12,7 @@ export default function CategoryList({
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("/api/webproducts");
+        const res = await fetch("/api/products");
         if (!res.ok) throw new Error("Unable to fetch products");
         const data = await res.json();
         setProducts(data);

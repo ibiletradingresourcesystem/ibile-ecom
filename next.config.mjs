@@ -2,9 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["image-bucket-admin.s3.amazonaws.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "image-bucket-admin.s3.amazonaws.com",
+      },
+    ],
   },
-  
 };
 
 export default nextConfig;

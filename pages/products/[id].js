@@ -14,7 +14,7 @@ export default function ProductPage() {
     if (id) {
       const fetchProduct = async () => {
         try {
-          const res = await fetch(`/api/webproducts/${id}`);
+          const res = await fetch(`/api/products/${id}`);
           if (res.ok) {
             const data = await res.json();
             setProduct(data);
@@ -53,25 +53,17 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 rounded-3xl border border-blue-100 bg-white p-5 shadow-xl shadow-blue-100/50 md:p-8">
-          <div className="h-80 animate-pulse rounded-2xl bg-blue-50" />
-          <div className="space-y-4">
-            <div className="h-8 w-32 animate-pulse rounded-full bg-blue-50" />
-            <div className="h-10 w-3/4 animate-pulse rounded-full bg-blue-50" />
-            <div className="h-24 animate-pulse rounded-2xl bg-blue-50" />
-            <div className="h-10 w-40 animate-pulse rounded-full bg-blue-50" />
-          </div>
-        </div>
+      <div className="product-detail product-detail--loading">
+        <div /><div />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-3xl mx-auto p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Product not found</h1>
-        <p className="mt-2 text-gray-500">
+      <div className="market-empty product-detail__not-found">
+        <h1>Product not found</h1>
+        <p>
           The product may have been removed or is temporarily unavailable.
         </p>
       </div>

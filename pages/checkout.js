@@ -63,41 +63,40 @@ export default function CheckoutPage() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50 px-4 py-10">
-      <div className="mx-auto max-w-6xl">
+    <section className="checkout-page">
+      <div className="checkout-page__inner">
         <button
           type="button"
           onClick={() => router.push("/products")}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"
+          className="checkout-page__back"
         >
           <ArrowLeft className="h-4 w-4" />
           Continue shopping
         </button>
 
-        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <form onSubmit={handleSubmit} className="rounded-3xl border border-blue-100 bg-white p-6 shadow-xl shadow-blue-100/50">
-            <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="checkout-page__layout">
+          <form onSubmit={handleSubmit} className="checkout-form">
+            <div className="checkout-panel-heading">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Secure checkout</p>
-                <h1 className="mt-1 text-3xl font-bold text-gray-900">Delivery details</h1>
+                <p>Checkout</p>
+                <h1>Delivery details</h1>
               </div>
-              <div className="rounded-full bg-blue-50 p-3 text-blue-700">
+              <div>
                 <ShieldCheck className="h-6 w-6" />
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm font-semibold text-gray-700">
+            <div className="checkout-fields">
+              <label>
                 Full name
                 <input
                   required
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </label>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label>
                 Email
                 <input
                   required
@@ -105,30 +104,27 @@ export default function CheckoutPage() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </label>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label>
                 Phone
                 <input
                   required
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </label>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label>
                 City
                 <input
                   required
                   name="city"
                   value={form.city}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </label>
-              <label className="block text-sm font-semibold text-gray-700 md:col-span-2">
+              <label className="checkout-fields__wide">
                 Delivery address
                 <textarea
                   required
@@ -136,25 +132,20 @@ export default function CheckoutPage() {
                   value={form.address}
                   onChange={handleChange}
                   rows={4}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </label>
             </div>
 
-            <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <p className="mb-3 flex items-center gap-2 text-sm font-bold text-gray-900">
-                <PhoneCall className="h-4 w-4 text-blue-700" /> Payment confirmation
-              </p>
-              <div className="rounded-2xl border border-white bg-white p-4 text-sm font-semibold text-gray-800 shadow-sm">
+            <div className="checkout-call-note">
+              <PhoneCall />
+              <div><strong>Payment confirmation</strong><p>
                 A store representative will call the customer to confirm payment, delivery, and final stock release.
-              </div>
+              </p></div>
             </div>
 
             {status.message && (
               <div
-                className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${
-                  status.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-                }`}
+                className={`checkout-status ${status.type === "success" ? "is-success" : "is-error"}`}
               >
                 {status.message}
               </div>
@@ -163,64 +154,64 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting || cart.length === 0}
-              className="mt-6 w-full rounded-2xl bg-gradient-to-r from-green-500 to-green-700 px-5 py-3 font-bold text-white shadow-lg transition hover:from-green-600 hover:to-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="checkout-submit"
             >
               {submitting ? "Processing..." : "Place reserved order"}
             </button>
           </form>
 
-          <aside className="rounded-3xl border border-blue-100 bg-white p-6 shadow-xl shadow-blue-100/50">
-            <div className="mb-5 flex items-center justify-between">
+          <aside className="checkout-summary">
+            <div className="checkout-panel-heading">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Order summary</p>
-                <h2 className="mt-1 text-2xl font-bold text-gray-900">Your cart</h2>
+                <p>Order summary</p>
+                <h2>Your cart</h2>
               </div>
-              <Truck className="h-6 w-6 text-blue-700" />
+              <div><Truck /></div>
             </div>
 
             {cart.length === 0 ? (
-              <div className="rounded-2xl bg-blue-50 p-6 text-center text-sm font-semibold text-gray-600">
+              <div className="market-empty">
                 Your cart is empty.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="checkout-summary__items">
                 {cart.map((item) => (
-                  <div key={item._id} className="flex items-start justify-between gap-3 rounded-2xl bg-gray-50 p-4">
+                  <div key={item._id}>
                     <div>
-                      <p className="font-semibold text-gray-900">{item.name}</p>
-                      <p className="mt-1 text-sm text-gray-500">
+                      <strong>{item.name}</strong>
+                      <p>
                         {item.quantity} x ₦{Number(item.price || 0).toLocaleString()}
                       </p>
                     </div>
-                    <p className="font-bold text-blue-700">
+                    <strong>
                       ₦{(Number(item.price || 0) * Number(item.quantity || 0)).toLocaleString()}
-                    </p>
+                    </strong>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="mt-6 space-y-3 border-t border-gray-200 pt-5">
-              <div className="flex justify-between text-sm text-gray-500">
+            <div className="checkout-summary__totals">
+              <div>
                 <span>Subtotal</span>
                 <span>₦{Number(totalAmount || 0).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-500">
+              <div>
                 <span>Delivery</span>
                 <span>Confirmed by store</span>
               </div>
-              <div className="flex justify-between text-xl font-bold text-gray-900">
+              <div className="checkout-summary__total">
                 <span>Total</span>
                 <span>₦{Number(totalAmount || 0).toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3 rounded-2xl bg-blue-50 p-4 text-sm text-gray-600">
-              <MapPin className="mt-0.5 h-5 w-5 flex-none text-blue-700" />
+            <div className="checkout-summary__note">
+              <MapPin />
               <span>Orders are written into the shared Ibile inventory/POS workflow for fulfilment and stock control.</span>
             </div>
-            <div className="mt-3 flex gap-3 rounded-2xl bg-green-50 p-4 text-sm text-gray-600">
-              <PackageCheck className="mt-0.5 h-5 w-5 flex-none text-green-700" />
+            <div className="checkout-summary__note checkout-summary__note--stock">
+              <PackageCheck />
               <span>Stock is reserved at checkout and finalized later by the contact-call staff, POS, or admin workflow.</span>
             </div>
           </aside>
