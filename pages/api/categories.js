@@ -1,6 +1,8 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import { getStorefrontCategoryNames } from "@/lib/storefrontProducts";
 import { ProductCategory } from "@/models/ProductCategory";
+import { requireAdminAuth } from "@/lib/authMiddleware";
+import { sanitizeString } from "@/lib/validation";
 
 const slugifyCategory = (value) =>
   String(value || "")
@@ -39,7 +41,11 @@ export default async function handler(req, res) {
     }
 
     if (method === "POST") {
-      const { name, description } = req.body;
+      const authError = requireAdminAuth(req, res);
+      if (authError) return;
+
+      const name = sanitizeString(req.body?.name, 100);
+      const description = sanitizeString(req.body?.description, 500);
       if (!name) return res.status(400).json({ error: "Name is required" });
 
       const category = await ProductCategory.create({ name, description });
@@ -47,7 +53,12 @@ export default async function handler(req, res) {
     }
 
     if (method === "PUT") {
-      const { _id, name, description } = req.body;
+      const authError = requireAdminAuth(req, res);
+      if (authError) return;
+
+      const { _id } = req.body;
+      const name = sanitizeString(req.body?.name, 100);
+      const description = sanitizeString(req.body?.description, 500);
       if (!_id) return res.status(400).json({ error: "Category ID is required" });
 
       const updated = await ProductCategory.findByIdAndUpdate(
@@ -59,6 +70,9 @@ export default async function handler(req, res) {
     }
 
     if (method === "DELETE") {
+      const authError = requireAdminAuth(req, res);
+      if (authError) return;
+
       const { id } = req.query;
       if (!id) return res.status(400).json({ error: "Category ID is required" });
 

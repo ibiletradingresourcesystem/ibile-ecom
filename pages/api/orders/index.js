@@ -1,13 +1,12 @@
 import { mongooseConnect } from "@/lib/mongoose";
-import { createOnlineOrder, formatOrder, releaseExpiredReservations } from "@/lib/orderLifecycle";
+import { createOnlineOrder, formatOrder } from "@/lib/orderLifecycle";
+import { validateCartItems, validateCustomerDetails } from "@/lib/validation";
 import Order from "@/models/Order";
 
 export default async function handler(req, res) {
   await mongooseConnect();
 
   if (req.method === "GET") {
-    await releaseExpiredReservations();
-
     const email = String(req.query.email || "").trim().toLowerCase();
     const filters = { siteKey: "store" };
 
@@ -24,9 +23,22 @@ export default async function handler(req, res) {
   }
 
   try {
+    const cartItems = req.body?.items || req.body?.cart || [];
+    const customerDetails = req.body?.customer || req.body?.shippingDetails || {};
+
+    const cartCheck = validateCartItems(cartItems);
+    if (!cartCheck.valid) {
+      return res.status(400).json({ success: false, error: cartCheck.error });
+    }
+
+    const customerCheck = validateCustomerDetails(customerDetails);
+    if (!customerCheck.valid) {
+      return res.status(400).json({ success: false, error: customerCheck.error });
+    }
+
     const order = await createOnlineOrder({
-      cartItems: req.body?.items || req.body?.cart || [],
-      customerDetails: req.body?.customer || req.body?.shippingDetails || {},
+      cartItems,
+      customerDetails,
       locationId: req.body?.locationId,
       locationName: req.body?.locationName,
     });

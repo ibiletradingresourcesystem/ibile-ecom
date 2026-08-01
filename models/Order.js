@@ -103,16 +103,7 @@ const OrderSchema = new mongoose.Schema(
       default: "",
     },
     paid: { type: Boolean, default: false },
-    reservationStatus: {
-      type: String,
-      enum: ["active", "releasing", "released", "finalizing", "finalized", null],
-      default: "active",
-    },
-    reservationExpiresAt: Date,
-    reservationReleasedAt: Date,
-    finalizedAt: Date,
     cancellationReason: String,
-    inventoryFinalizedBy: { type: String, enum: ["admin", "pos", null], default: null },
   },
   { timestamps: true }
 );

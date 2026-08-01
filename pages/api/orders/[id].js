@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import { mongooseConnect } from "@/lib/mongoose";
-import { cancelOnlineOrder, formatOrder, releaseExpiredReservations } from "@/lib/orderLifecycle";
+import { cancelOnlineOrder, formatOrder } from "@/lib/orderLifecycle";
 import Order from "@/models/Order";
 
 export default async function handler(req, res) {
@@ -13,7 +13,6 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "GET") {
-    await releaseExpiredReservations();
     const order = await Order.findById(id).lean();
 
     if (!order) {
