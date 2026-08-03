@@ -5,6 +5,7 @@ const CustomerSchema = new mongoose.Schema({
   email: { type: String, unique: true, sparse: true },
   phone: { type: String, default: "" },
   address: { type: String, default: "" },
+  password: { type: String, default: "" },
   type: {
     type: String,
     enum: ["REGULAR", "VIP", "NEW", "INACTIVE", "BULK_BUYER", "ONLINE", "CREDIT"],

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Phone, Search, ShoppingCart } from "lucide-react";
+import { Phone, Search, ShoppingCart, User } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCart } from "@/context/CartContext";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import CartSidebar from "@/components/cart/CartSidebar";
 
@@ -13,6 +14,7 @@ export default function Nav() {
   const router = useRouter();
   const { cart } = useCart();
   const { store } = useStore();
+  const { isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -30,9 +32,6 @@ export default function Nav() {
       <header className="store-header">
         <div className="store-header__main">
           <div className="store-header__inner">
-            <button type="button" className="store-header__menu" aria-label="Browse products" onClick={() => router.push("/products")}>
-              <Menu />
-            </button>
             <Link href="/" className="store-header__brand" aria-label="Ibile Mart home">
               <span className="store-header__logo">
               <Image
@@ -65,6 +64,10 @@ export default function Nav() {
                   <span><small>Call to order</small>{storePhone}</span>
                 </a>
               )}
+              <Link href={isAuthenticated ? "/account" : "/account/login"} className="store-header__action store-header__account">
+                <User />
+                <span>{isAuthenticated ? "Account" : "Sign in"}</span>
+              </Link>
               <button type="button" onClick={() => setSidebarOpen(true)} className="store-header__action store-header__cart" aria-label="Open cart">
                 <span className="store-header__cart-icon">
                   <ShoppingCart />

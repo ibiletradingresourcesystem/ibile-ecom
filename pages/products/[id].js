@@ -1,6 +1,8 @@
 // /pages/products/[id].js
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import ProductView from "@/components/product/ProductView";
 
 export default function ProductPage() {
@@ -70,5 +72,21 @@ export default function ProductPage() {
     );
   }
 
-  return <ProductView product={product} />;
+  return (
+    <div>
+      <div className="product-detail__nav">
+        <button type="button" onClick={() => router.back()} className="product-detail__back">
+          <ChevronLeft size={18} /> Back
+        </button>
+        <nav className="product-detail__breadcrumb">
+          <Link href="/">Home</Link>
+          <span>/</span>
+          <Link href="/products">Products</Link>
+          <span>/</span>
+          <span>{product.name}</span>
+        </nav>
+      </div>
+      <ProductView product={product} />
+    </div>
+  );
 }

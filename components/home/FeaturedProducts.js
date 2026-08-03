@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Headphones, PackageCheck, Truck } from "lucide-react";
+import { ArrowRight, Headphones } from "lucide-react";
 
 import ProductCard from "@/components/product/ProductCard";
 import ProductCategory from "@/components/layout/ProductCategory";
@@ -33,12 +33,6 @@ export default function FeaturedProducts() {
   return (
     <div className="market-home">
       <HeroBanner />
-
-      <section className="market-benefits" aria-label="Shopping benefits">
-        <div><Truck /><span><strong>Flexible delivery</strong><small>Confirmed when we call</small></span></div>
-        <div><PackageCheck /><span><strong>Stock</strong><small>Inventory-backed availability</small></span></div>
-        <div><Headphones /><span><strong>Human support</strong><small>{storePhone ? `Call ${storePhone}` : "Contact us"}</small></span></div>
-      </section>
 
       <ProductCategory />
 

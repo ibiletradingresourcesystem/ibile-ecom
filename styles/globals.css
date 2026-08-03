@@ -223,10 +223,7 @@ a {
   }
 
   .store-header__menu {
-    display: grid;
-    width: 36px;
-    height: 36px;
-    place-items: center;
+    display: none;
   }
 
   .store-header__menu svg {
@@ -1091,8 +1088,8 @@ a {
 .store-footer__inner {
   display: grid;
   width: min(1240px, calc(100% - 40px));
-  grid-template-columns: 1.5fr 0.7fr 1fr;
-  gap: 60px;
+  grid-template-columns: 1.4fr 0.6fr 0.8fr 1fr;
+  gap: 40px;
   margin: 0 auto;
   padding: 44px 0 36px;
 }
@@ -2017,5 +2014,452 @@ a {
 
   .checkout-fields__wide {
     grid-column: auto;
+  }
+}
+
+/* ========== Auth Pages ========== */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 32px 16px;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 36px 32px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+}
+
+.auth-card > p {
+  margin: 6px 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.auth-card label span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #444;
+}
+
+.auth-card input {
+  height: 42px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(239, 108, 0, 0.1);
+}
+
+.auth-submit {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.auth-switch {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.auth-switch a {
+  color: var(--brand);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-legal {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+}
+
+.auth-legal a {
+  color: var(--brand-dark);
+  text-decoration: underline;
+}
+
+/* ========== Account Page ========== */
+
+.account-page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+  min-height: 60vh;
+}
+
+.account-sidebar {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px 20px;
+  align-self: start;
+}
+
+.account-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+
+.account-sidebar__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.account-sidebar__user strong {
+  font-size: 14px;
+  display: block;
+}
+
+.account-sidebar__user span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.account-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-sidebar__nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  text-align: left;
+}
+
+.account-sidebar__nav button:hover {
+  background: #f5f5f5;
+}
+
+.account-sidebar__nav button.is-active {
+  background: #fff5ec;
+  color: var(--brand-dark);
+}
+
+.account-sidebar__logout {
+  margin-top: 8px;
+  color: #b42318 !important;
+}
+
+.account-content {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 28px 32px;
+}
+
+.account-section h2 {
+  margin: 0 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+}
+
+.account-details__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.account-details__row span {
+  color: var(--muted);
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.account-form label span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #444;
+}
+
+.account-form input,
+.account-form textarea {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.account-form__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.account-empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.account-empty a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.account-wishlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-wishlist__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.account-wishlist__info strong {
+  display: block;
+  font-size: 14px;
+}
+
+.account-wishlist__info span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.account-wishlist__view {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 700px) {
+  .account-page {
+    grid-template-columns: 1fr;
+    padding: 16px 0 40px;
+  }
+
+  .account-sidebar {
+    padding: 16px;
+  }
+
+  .account-content {
+    padding: 20px 16px;
+  }
+}
+
+/* ========== Legal Pages ========== */
+
+.legal-page {
+  width: min(760px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.legal-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legal-page h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+}
+
+.legal-page__updated {
+  margin: 6px 0 32px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legal-page section {
+  margin-bottom: 28px;
+}
+
+.legal-page h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.legal-page p {
+  margin: 0 0 8px;
+  color: #444;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.legal-page ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+  color: #444;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ========== Product Navigation ========== */
+
+.product-detail__nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 16px 0 0;
+}
+
+.product-detail__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  cursor: pointer;
+}
+
+.product-detail__back:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.product-detail__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.product-detail__breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.product-detail__breadcrumb a:hover {
+  color: var(--brand);
+}
+
+.product-detail__breadcrumb > span:last-child {
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+@media (max-width: 700px) {
+  .product-detail__breadcrumb {
+    display: none;
+  }
+}
+
+/* ========== Account link in header ========== */
+
+.store-header__account {
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .store-header__account > span:last-child {
+    display: none;
   }
 }
