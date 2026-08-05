@@ -10,29 +10,21 @@ export default async function handler(req, res) {
 
   const now = new Date();
 
-  const heroes = await Hero.find({
-    status: { $in: ["active", "live"] },
-    targetSystem: { $in: ["ecommerce", "web", "both"] },
-    $or: [
-      { startDate: null },
-      { startDate: { $exists: false } },
-      { startDate: { $lte: now } },
-    ],
-    $and: [
-      {
-        $or: [
-          { endDate: null },
-          { endDate: { $exists: false } },
-          { endDate: { $gte: now } },
-        ],
-      },
-    ],
-  })
+  // Fetch all active heroes, then filter dates in JS for reliability
+  const heroes = await Hero.find({ status: "active" })
     .sort({ order: 1, createdAt: -1 })
-    .limit(10)
+    .limit(20)
     .lean();
 
-  const slides = heroes.map((hero) => ({
+  const filtered = heroes.filter((hero) => {
+    const start = hero.startDate ? new Date(hero.startDate) : null;
+    const end = hero.endDate ? new Date(hero.endDate) : null;
+    if (start && start > now) return false;
+    if (end && end < now) return false;
+    return true;
+  });
+
+  const slides = filtered.map((hero) => ({
     _id: String(hero._id),
     title: hero.title || "",
     subtitle: hero.subtitle || "",

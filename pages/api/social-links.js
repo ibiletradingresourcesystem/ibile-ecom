@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   await mongooseConnect();
 
-  const links = await SiteSocialLink.find({ active: true, scope: { $in: ["warehouse", "both"] } })
+  const links = await SiteSocialLink.find({ active: { $ne: false } })
     .sort({ order: 1 })
     .lean();
 
