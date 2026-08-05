@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --brand: #ef6c00;
-  --brand-dark: #c45100;
+  --brand: #e06500;
+  --brand-dark: #b34e00;
   --ink: #202124;
   --muted: #6b7280;
   --line: #e5e7eb;
@@ -353,7 +353,7 @@ a {
   align-items: center;
   overflow: hidden;
   border-radius: 8px;
-  background: #f47721;
+  background: #d96a1c;
   color: #fff;
 }
 
@@ -459,7 +459,7 @@ a {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(135deg, #d4451a 0%, #f47721 40%, #e8943a 100%);
+  background: linear-gradient(135deg, #b83d18 0%, #d96a1c 40%, #cc8232 100%);
   color: #fff;
 }
 
@@ -618,6 +618,30 @@ a {
   width: 22px;
   border-radius: 4px;
   background: #fff;
+}
+
+.hero-banner__call-fixed {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  padding: 0 16px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.hero-banner__call-fixed:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 @media (max-width: 768px) {
@@ -842,6 +866,43 @@ a {
   text-transform: uppercase;
 }
 
+.market-product-card__wishlist {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.market-product-card__wishlist svg {
+  width: 15px;
+  height: 15px;
+}
+
+.market-product-card__wishlist:hover {
+  color: #e53e3e;
+  background: #fff;
+}
+
+.market-product-card__wishlist.is-active {
+  color: #e53e3e;
+  background: #fff;
+}
+
+.market-product-card__wishlist.is-active svg {
+  fill: #e53e3e;
+}
+
 .market-product-card__body {
   display: flex;
   flex: 1;
@@ -913,6 +974,11 @@ a {
   background: var(--brand);
   color: #fff;
   cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.market-product-card__footer button:active {
+  transform: scale(0.9);
 }
 
 .market-product-card__footer button:disabled {
@@ -932,6 +998,8 @@ a {
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--brand);
+  min-width: 92px;
+  height: 36px;
 }
 
 .market-product-card__qty button {
@@ -1128,6 +1196,34 @@ a {
   color: #898989;
   font-size: 11px;
   text-align: center;
+}
+
+.store-footer__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.store-footer__socials a {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: #333;
+  color: #ccc;
+  transition: background 0.2s, color 0.2s;
+}
+
+.store-footer__socials a:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+.store-footer__socials svg {
+  width: 16px;
+  height: 16px;
 }
 
 @keyframes market-pulse {

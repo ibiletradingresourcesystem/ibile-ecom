@@ -6,7 +6,7 @@ import {
   TwitterShareButton,
   WhatsappShareButton,
   FacebookIcon,
-  TwitterIcon,
+  XIcon,
   WhatsappIcon,
 } from "react-share";
 import { useCart } from "@/context/CartContext";
@@ -117,7 +117,7 @@ export default function ProductView({ product }) {
                 <FacebookIcon size={32} round />
               </FacebookShareButton>
               <TwitterShareButton url={productUrl} title={product.name}>
-                <TwitterIcon size={32} round />
+                <XIcon size={32} round />
               </TwitterShareButton>
               <WhatsappShareButton url={productUrl} title={product.name}>
                 <WhatsappIcon size={32} round />

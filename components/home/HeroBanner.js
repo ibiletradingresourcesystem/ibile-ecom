@@ -4,17 +4,6 @@ import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
-const DEFAULT_SLIDE = {
-  _id: "default",
-  title: "Everything you need, ready when you need it.",
-  subtitle: "Shop groceries, home essentials, personal care and more — backed by live inventory.",
-  image: "",
-  bgImage: "",
-  ctaText: "Shop all products",
-  ctaLink: "/products",
-  bannerType: "standard",
-};
-
 export default function HeroBanner() {
   const [slides, setSlides] = useState([]);
   const [current, setCurrent] = useState(0);
@@ -28,9 +17,9 @@ export default function HeroBanner() {
         const res = await fetch("/api/heroes");
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
-        setSlides(data.slides?.length ? data.slides : [DEFAULT_SLIDE]);
+        setSlides(data.slides?.length ? data.slides : []);
       } catch {
-        setSlides([DEFAULT_SLIDE]);
+        setSlides([]);
       } finally {
         setLoading(false);
       }
@@ -57,7 +46,9 @@ export default function HeroBanner() {
     return <section className="hero-banner hero-banner--loading"><div className="hero-banner__inner" /></section>;
   }
 
-  const slide = slides[current] || DEFAULT_SLIDE;
+  if (slides.length === 0) return null;
+
+  const slide = slides[current] || slides[0];
   const hasBg = Boolean(slide.bgImage);
   const hasImage = Boolean(slide.image);
   const isCampaign = slide.bannerType === "promotion" || slide.bannerType === "campaign";
@@ -89,11 +80,6 @@ export default function HeroBanner() {
                 {slide.ctaText || "Shop now"} <ArrowRight />
               </Link>
             )}
-            {storePhone && !isCampaign && (
-              <a href={`tel:${storePhone}`} className="hero-banner__cta hero-banner__cta--secondary">
-                Call to order
-              </a>
-            )}
           </div>
         </div>
         {(hasImage || !hasBg) && (
@@ -109,6 +95,12 @@ export default function HeroBanner() {
           </div>
         )}
       </div>
+
+      {storePhone && (
+        <a href={`tel:${storePhone}`} className="hero-banner__call-fixed">
+          Call to order
+        </a>
+      )}
 
       {slides.length > 1 && (
         <div className="hero-banner__nav">

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Minus, Plus } from "lucide-react";
+import { Heart, Minus, Plus } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCart } from "@/context/CartContext";
 import { getCategoryIcon } from "@/lib/categoryIcons";
 
@@ -9,6 +9,11 @@ import { getCategoryIcon } from "@/lib/categoryIcons";
 
 export default function ProductCard({ product, badge }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [wishlisted, setWishlisted] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const stored = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    return stored.includes(product._id);
+  });
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
   const productImage =
     product.images && product.images[0]
@@ -23,15 +28,42 @@ export default function ProductCard({ product, badge }) {
   const cartItem = cart.find((item) => item._id === product._id);
   const cartQty = cartItem ? cartItem.quantity : 0;
 
-  const handleAdd = () => addToCart(product);
-  const handleIncrease = () => updateQuantity(product._id, cartQty + 1);
-  const handleDecrease = () => {
+  const handleAdd = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product);
+  }, [addToCart, product]);
+
+  const handleIncrease = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateQuantity(product._id, cartQty + 1);
+  }, [updateQuantity, product._id, cartQty]);
+
+  const handleDecrease = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (cartQty <= 1) {
       removeFromCart(product._id);
     } else {
       updateQuantity(product._id, cartQty - 1);
     }
-  };
+  }, [removeFromCart, updateQuantity, product._id, cartQty]);
+
+  const toggleWishlist = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setWishlisted((prev) => {
+      const stored = JSON.parse(localStorage.getItem("wishlist") || "[]");
+      const next = !prev;
+      if (next) {
+        localStorage.setItem("wishlist", JSON.stringify([...stored, product._id]));
+      } else {
+        localStorage.setItem("wishlist", JSON.stringify(stored.filter((id) => id !== product._id)));
+      }
+      return next;
+    });
+  }, [product._id]);
 
   
   return (
@@ -53,6 +85,14 @@ export default function ProductCard({ product, badge }) {
           </span>
         )}
         {badge && <span className="market-product-card__badge">{badge}</span>}
+        <button
+          type="button"
+          className={`market-product-card__wishlist ${wishlisted ? "is-active" : ""}`}
+          onClick={toggleWishlist}
+          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart />
+        </button>
       </Link>
       <div className="market-product-card__body">
         <p className="market-product-card__category">{typeof product.category === "string" ? product.category : "Product"}</p>
