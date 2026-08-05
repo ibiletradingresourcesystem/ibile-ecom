@@ -2573,7 +2573,7 @@ a {
   --text-strong: #15191e;
   --text-default: #262b31;
   --text-muted: #6b7280;
-  --brand-yellow: #f2d400;
+  --brand-yellow: #dcc200;
   --brand-yellow-ink: #201700;
   --brand-teal: #68c8b7;
   --brand-teal-ink: #0f3d39;
@@ -2826,6 +2826,20 @@ select {
   border-radius: var(--radius-xl);
   background: linear-gradient(180deg, #fff 0%, #fbfbf8 100%);
   box-shadow: var(--shadow-sm);
+  color: var(--text-default);
+}
+
+.hero-banner:has(.hero-banner__bg) {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #fff;
+}
+
+.hero-banner:has(.hero-banner__bg) .hero-banner__content h1 {
+  color: #fff;
+}
+
+.hero-banner:has(.hero-banner__bg) .hero-banner__content p {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .market-hero::after {
@@ -3160,6 +3174,12 @@ select {
   color: var(--brand-yellow-ink);
 }
 
+.market-product-card__qty button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
 .market-product-card__footer button:disabled,
 .market-product-card__qty button:disabled,
 .cart-quantity button:disabled,
@@ -3173,19 +3193,22 @@ select {
 }
 
 .market-product-card__qty {
-  overflow: hidden;
-  border: 1px solid rgb(104 200 183 / 28%);
+  overflow: visible;
+  border: none;
   border-radius: 999px;
+  background: var(--surface-soft);
+  gap: 2px;
+  padding: 1px;
 }
 
 .market-product-card__qty button {
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 .market-product-card__qty span {
   min-width: 28px;
   height: 36px;
-  border-inline: 1px solid var(--line-strong);
+  border-inline: none;
   color: var(--text-strong);
 }
 

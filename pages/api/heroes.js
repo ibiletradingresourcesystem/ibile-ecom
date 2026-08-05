@@ -14,10 +14,18 @@ export default async function handler(req, res) {
     status: "active",
     targetSystem: { $in: ["ecommerce", "web", "both"] },
     $or: [
-      { startDate: null, endDate: null },
-      { startDate: { $lte: now }, endDate: null },
-      { startDate: null, endDate: { $gte: now } },
-      { startDate: { $lte: now }, endDate: { $gte: now } },
+      { startDate: null },
+      { startDate: { $exists: false } },
+      { startDate: { $lte: now } },
+    ],
+    $and: [
+      {
+        $or: [
+          { endDate: null },
+          { endDate: { $exists: false } },
+          { endDate: { $gte: now } },
+        ],
+      },
     ],
   })
     .sort({ order: 1, createdAt: -1 })
