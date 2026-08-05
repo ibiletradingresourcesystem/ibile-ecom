@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const now = new Date();
 
   const heroes = await Hero.find({
-    status: "active",
+    status: { $in: ["active", "live"] },
     targetSystem: { $in: ["ecommerce", "web", "both"] },
     $or: [
       { startDate: null },
