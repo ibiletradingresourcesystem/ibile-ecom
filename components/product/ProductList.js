@@ -6,6 +6,8 @@ export default function ProductList({
   groupByCategory = false,
   category = null,
   search = "",
+  promotion = null,
+  filter = null,
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +34,22 @@ export default function ProductList({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, groupByCategory]);
+  }, [category, groupByCategory, promotion, filter]);
 
   const normalizeCategory = (value) => String(value || "").trim().toLowerCase();
   const categoryFilter = normalizeCategory(category);
   const searchFilter = String(search || "").trim().toLowerCase();
 
   const filteredProducts = products.filter((product) => {
+    if (promotion && String(product.promotion || product.promotionId || "") !== promotion) return false;
+
+    if (filter === "sale" && !product.onSale && !product.salePrice) return false;
+    if (filter === "new") {
+      const created = product.createdAt ? new Date(product.createdAt) : null;
+      const daysOld = created ? (Date.now() - created.getTime()) / 86400000 : Infinity;
+      if (daysOld > 30) return false;
+    }
+
     const matchesCategory = !category || (() => {
         const productCategory = product.category;
         if (typeof productCategory === "object" && productCategory !== null) {

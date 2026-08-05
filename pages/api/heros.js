@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         const start = hero.startDate ? new Date(hero.startDate) : null;
         const end = hero.endDate ? new Date(hero.endDate) : null;
         if (start && start > now) return false;
-        if (end && end < now) return false;
+        if (!hero.indefinite && end && end < now) return false;
         return true;
       })
       .map((hero) => ({

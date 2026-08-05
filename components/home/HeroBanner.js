@@ -12,7 +12,7 @@ export default function HeroBanner() {
   const storePhone = store?.storePhone || "";
 
   useEffect(() => {
-    fetch("/api/heroes")
+    fetch("/api/heros")
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setSlides(Array.isArray(data.slides) ? data.slides : []))
       .catch(() => setSlides([]))
