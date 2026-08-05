@@ -39,7 +39,7 @@ export default function Nav() {
                   alt=""
                 fill
                   sizes="44px"
-                  className="object-cover"
+                className="object-contain"
               />
               </span>
               <span className="store-header__brand-name">IbileMart Store</span>
