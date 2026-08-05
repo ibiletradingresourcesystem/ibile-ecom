@@ -169,6 +169,7 @@ export default function CheckoutPage() {
             {status.message && (
               <div
                 className={`checkout-status ${status.type === "success" ? "is-success" : "is-error"}`}
+                role={status.type === "error" ? "alert" : "status"}
               >
                 {status.message}
               </div>

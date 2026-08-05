@@ -101,6 +101,7 @@ export default function ProductView({ product }) {
             onClick={handleAddToCart}
             disabled={!isInStock}
             className="product-detail__add"
+            aria-live="polite"
           >
             <ShoppingCart className="h-5 w-5" />
             {isInStock ? (added ? "Added to Cart" : `Add ${quantity} to Cart`) : "Unavailable"}

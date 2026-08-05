@@ -34,6 +34,9 @@ export default function CartSidebar({ closeSidebar = () => {} }) {
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="cart-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Shopping cart"
         >
           <div className="cart-drawer__header">
             <h2>Your cart</h2>
@@ -62,6 +65,9 @@ export default function CartSidebar({ closeSidebar = () => {} }) {
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="cart-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Shopping cart"
         >
           <div className="cart-drawer__header">
             <div><p>Shopping bag</p><h2>Your cart <span>({cart.length})</span></h2></div>

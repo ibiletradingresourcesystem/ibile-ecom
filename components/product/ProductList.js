@@ -11,6 +11,7 @@ export default function ProductList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState("featured");
   const productsPerPage = 12;
 
   useEffect(() => {
@@ -56,9 +57,16 @@ export default function ProductList({
     return matchesCategory && (!searchFilter || searchableText.includes(searchFilter));
   });
 
+  const sortedProducts = [...filteredProducts].sort((firstProduct, secondProduct) => {
+    if (sortBy === "price-low") return Number(firstProduct.price || 0) - Number(secondProduct.price || 0);
+    if (sortBy === "price-high") return Number(secondProduct.price || 0) - Number(firstProduct.price || 0);
+    if (sortBy === "name") return String(firstProduct.name || "").localeCompare(String(secondProduct.name || ""));
+    return 0;
+  });
+
   if (loading) {
     return (
-      <div className="catalog-products">
+      <div className="catalog-products" aria-busy="true" aria-label="Loading products">
           <div className="market-product-grid">
             {Array.from({ length: 10 }, (_, index) => <div key={index} className="market-product-skeleton" />)}
           </div>
@@ -87,14 +95,28 @@ export default function ProductList({
   // Pagination logic
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
+  const currentProducts = sortedProducts.slice(
     indexOfFirstProduct,
     indexOfLastProduct
   );
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
 
   return (
     <div className="catalog-products">
+      {!groupByCategory && filteredProducts.length > 0 && (
+        <div className="catalog-controls">
+          <p aria-live="polite">{filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}</p>
+          <label>
+            <span>Sort by</span>
+            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setCurrentPage(1); }}>
+              <option value="featured">Featured</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="name">Name: A to Z</option>
+            </select>
+          </label>
+        </div>
+      )}
        {filteredProducts.length > 0 ? (
         <div className="market-product-grid">
           {currentProducts.map((product) => (

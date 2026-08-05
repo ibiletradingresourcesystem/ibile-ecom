@@ -96,9 +96,16 @@ export default function HeroBanner() {
             )}
           </div>
         </div>
-        {hasImage && (
+        {(hasImage || !hasBg) && (
           <div className="hero-banner__visual" aria-hidden="true">
-            <Image src={slide.image} alt="" width={400} height={400} priority />
+            <Image
+              src={hasImage ? slide.image : "/images/Logo.png"}
+              alt=""
+              width={400}
+              height={400}
+              priority
+              className={!hasImage ? "hero-banner__brand-mark" : ""}
+            />
           </div>
         )}
       </div>

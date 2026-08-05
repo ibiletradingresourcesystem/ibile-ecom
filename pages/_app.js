@@ -21,9 +21,10 @@ export default function App({ Component, pageProps }) {
       <StoreProvider>
         <AuthProvider>
           <CartProvider>
-            <div className="min-h-screen bg-[#f5f5f5] text-gray-900 flex flex-col">
+            <div className="site-shell">
+              <a className="skip-link" href="#main-content">Skip to content</a>
               <Navbar />
-              <main className="flex-grow pt-[118px] pb-16 md:pt-[76px] md:pb-0">
+              <main id="main-content" className="site-main">
                 <Component {...pageProps} />
               </main>
               <Footer />
