@@ -11,9 +11,9 @@ export default async function handler(req, res) {
 
     const now = new Date();
 
-    const heroes = await Hero.find({}).sort({ order: 1, createdAt: -1 }).limit(20).lean();
+    const heros = await Hero.find({}).sort({ order: 1, createdAt: -1 }).limit(20).lean();
 
-    const slides = heroes
+    const slides = heros
       .filter((hero) => {
         if (hero.status === "inactive") return false;
         const start = hero.startDate ? new Date(hero.startDate) : null;
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ slides });
   } catch (err) {
-    console.error("Heroes API error:", err.message);
+    console.error("heros API error:", err.message);
     return res.status(200).json({ slides: [] });
   }
 }
