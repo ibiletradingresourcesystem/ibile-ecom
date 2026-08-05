@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
 export default function HeroBanner() {
@@ -12,19 +12,11 @@ export default function HeroBanner() {
   const storePhone = store?.storePhone || "";
 
   useEffect(() => {
-    async function fetchHeroes() {
-      try {
-        const res = await fetch("/api/heroes");
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        setSlides(data.slides?.length ? data.slides : []);
-      } catch {
-        setSlides([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchHeroes();
+    fetch("/api/heroes")
+      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((data) => setSlides(Array.isArray(data.slides) ? data.slides : []))
+      .catch(() => setSlides([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const goNext = useCallback(() => {
@@ -35,7 +27,6 @@ export default function HeroBanner() {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Auto-advance slides
   useEffect(() => {
     if (slides.length <= 1) return;
     const timer = setInterval(goNext, 6000);
@@ -43,18 +34,18 @@ export default function HeroBanner() {
   }, [slides.length, goNext]);
 
   if (loading) {
-    return <section className="hero-banner hero-banner--loading"><div className="hero-banner__inner" /></section>;
+    return <div className="hero-shell hero-shell--loading" />;
   }
 
-  if (slides.length === 0) return null;
+  if (!slides.length) return null;
 
   const slide = slides[current] || slides[0];
   const hasBg = Boolean(slide.bgImage);
-  const hasImage = Boolean(slide.image);
-  const isCampaign = slide.bannerType === "promotion" || slide.bannerType === "campaign";
+  const hasImg = Boolean(slide.image);
 
   return (
-    <section className="hero-banner" aria-labelledby="hero-title">
+    <div className="hero-shell">
+      {/* Background image layer */}
       {hasBg && (
         <Image
           src={slide.bgImage}
@@ -62,63 +53,60 @@ export default function HeroBanner() {
           fill
           priority
           sizes="100vw"
-          className="hero-banner__bg"
+          style={{ objectFit: "cover", zIndex: 0 }}
         />
       )}
-      <div className={`hero-banner__inner ${hasBg ? "has-bg" : ""}`}>
-        <div className="hero-banner__content">
-          {isCampaign && (
-            <span className="hero-banner__tag">
-              {slide.bannerType === "promotion" ? "Promotion" : "Campaign"}
+
+      {/* Dark overlay for bg images */}
+      {hasBg && <div className="hero-shell__overlay" />}
+
+      {/* Content */}
+      <div className="hero-shell__grid">
+        <div className="hero-shell__text">
+          {slide.bannerType !== "standard" && (
+            <span className="hero-shell__badge">
+              {slide.bannerType === "campaign" ? "Campaign" : "Promotion"}
             </span>
           )}
-          <h1 id="hero-title">{slide.title}</h1>
-          {slide.subtitle && <p>{slide.subtitle}</p>}
-          <div className="hero-banner__actions">
+          <h1 className="hero-shell__title">{slide.title}</h1>
+          {slide.subtitle && <p className="hero-shell__subtitle">{slide.subtitle}</p>}
+          <div className="hero-shell__buttons">
             {slide.ctaLink && (
-              <Link href={slide.ctaLink} className="hero-banner__cta hero-banner__cta--primary">
-                {slide.ctaText || "Shop now"} <ArrowRight />
+              <Link href={slide.ctaLink} className="hero-shell__btn hero-shell__btn--primary">
+                {slide.ctaText || "Shop now"} <ArrowRight size={16} />
               </Link>
+            )}
+            {storePhone && (
+              <a href={`tel:${storePhone}`} className="hero-shell__btn hero-shell__btn--secondary">
+                <Phone size={14} /> Call to order
+              </a>
             )}
           </div>
         </div>
-        {(hasImage || !hasBg) && (
-          <div className="hero-banner__visual" aria-hidden="true">
-            <Image
-              src={hasImage ? slide.image : "/images/Logo.png"}
-              alt=""
-              width={400}
-              height={400}
-              priority
-              className={!hasImage ? "hero-banner__brand-mark" : ""}
-            />
+
+        {hasImg && (
+          <div className="hero-shell__image">
+            <Image src={slide.image} alt="" width={380} height={380} priority style={{ objectFit: "contain" }} />
           </div>
         )}
       </div>
 
-      {storePhone && (
-        <a href={`tel:${storePhone}`} className="hero-banner__call-fixed">
-          Call to order
-        </a>
-      )}
-
+      {/* Slide navigation */}
       {slides.length > 1 && (
-        <div className="hero-banner__nav">
-          <button type="button" onClick={goPrev} aria-label="Previous slide"><ChevronLeft /></button>
-          <div className="hero-banner__dots">
-            {slides.map((s, i) => (
-              <button
-                key={s._id}
-                type="button"
-                onClick={() => setCurrent(i)}
-                className={i === current ? "is-active" : ""}
-                aria-label={`Go to slide ${i + 1}`}
-              />
-            ))}
-          </div>
-          <button type="button" onClick={goNext} aria-label="Next slide"><ChevronRight /></button>
+        <div className="hero-shell__nav">
+          <button type="button" onClick={goPrev} aria-label="Previous"><ChevronLeft size={16} /></button>
+          {slides.map((s, i) => (
+            <button
+              key={s._id || i}
+              type="button"
+              onClick={() => setCurrent(i)}
+              className={`hero-shell__dot ${i === current ? "active" : ""}`}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
+          <button type="button" onClick={goNext} aria-label="Next"><ChevronRight size={16} /></button>
         </div>
       )}
-    </section>
+    </div>
   );
 }
