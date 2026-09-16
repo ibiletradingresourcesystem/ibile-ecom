@@ -60,6 +60,7 @@ export default async function handler(req, res) {
         phone: customer.phone,
         address: customer.address,
         type: customer.type,
+        emailVerified: Boolean(customer.emailVerified),
       },
     });
   } catch (err) {

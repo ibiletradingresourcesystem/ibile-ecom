@@ -4,16 +4,17 @@ import Link from "next/link";
 import Head from "next/head";
 import { useAuth } from "@/context/AuthContext";
 import OrderHistory from "@/components/orders/OrderHistory";
-import { Heart, Package, User, LogOut } from "lucide-react";
+import { Heart, Package, User, LogOut, MailWarning } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { customer, loading, logout, updateProfile, isAuthenticated, wishlist } = useAuth();
+  const { customer, loading, logout, updateProfile, isAuthenticated, isEmailVerified, wishlist, resendVerification } = useAuth();
   const [tab, setTab] = useState("profile");
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [verifyState, setVerifyState] = useState({ sending: false, note: "" });
 
   // Redirecting during render warns in React and can loop; do it as an effect.
   useEffect(() => {
@@ -43,6 +44,21 @@ export default function AccountPage() {
       setMessage({ type: "error", text: err.message });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setVerifyState({ sending: true, note: "" });
+    try {
+      const data = await resendVerification();
+      setVerifyState({
+        sending: false,
+        note: data.alreadyVerified
+          ? "That email is already confirmed."
+          : "Sent. Check your inbox for the confirmation link.",
+      });
+    } catch (err) {
+      setVerifyState({ sending: false, note: err.message });
     }
   };
 
@@ -83,6 +99,24 @@ export default function AccountPage() {
           {tab === "profile" && (
             <div className="account-section">
               <h2>Profile Details</h2>
+
+              {!isEmailVerified && (
+                <div className="verify-banner" role="status">
+                  <MailWarning aria-hidden="true" />
+                  <div>
+                    <strong>Confirm your email address</strong>
+                    <p>
+                      {router.query.verify === "failed"
+                        ? `We could not send the confirmation link to ${customer.email} just now. Try again below.`
+                        : `We sent a link to ${customer.email}. Confirming it lets us email you updates about your orders.`}
+                    </p>
+                    {verifyState.note && <p className="verify-banner__note">{verifyState.note}</p>}
+                  </div>
+                  <button type="button" onClick={handleResendVerification} disabled={verifyState.sending}>
+                    {verifyState.sending ? "Sending..." : "Resend link"}
+                  </button>
+                </div>
+              )}
               {message.text && (
                 <div className={`account-message ${message.type === "success" ? "is-success" : "is-error"}`} role="status">
                   {message.text}
@@ -102,7 +136,15 @@ export default function AccountPage() {
               ) : (
                 <div className="account-details">
                   <div className="account-details__row"><span>Name</span><strong>{customer.name}</strong></div>
-                  <div className="account-details__row"><span>Email</span><strong>{customer.email}</strong></div>
+                  <div className="account-details__row">
+                    <span>Email</span>
+                    <strong>
+                      {customer.email}
+                      <span className={`verify-chip ${isEmailVerified ? "is-verified" : "is-pending"}`}>
+                        {isEmailVerified ? "Confirmed" : "Not confirmed"}
+                      </span>
+                    </strong>
+                  </div>
                   <div className="account-details__row"><span>Phone</span><strong>{customer.phone || "—"}</strong></div>
                   <div className="account-details__row"><span>Address</span><strong>{customer.address || "—"}</strong></div>
                   <div className="account-details__row"><span>Member since</span><strong>{customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("en-NG", { year: "numeric", month: "long" }) : "—"}</strong></div>

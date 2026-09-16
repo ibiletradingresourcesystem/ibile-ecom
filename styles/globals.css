@@ -6370,3 +6370,119 @@ body::selection {
   opacity: 0.75;
   stroke-width: 1.5;
 }
+
+/* ==========================================================================
+   Email verification prompt
+   ========================================================================== */
+
+.verify-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  background: #fffbeb;
+  padding: 14px 16px;
+  color: #78350f;
+}
+
+.verify-banner > svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 1px;
+}
+
+.verify-banner > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.verify-banner strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+}
+
+.verify-banner p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.verify-banner__note {
+  margin-top: 6px !important;
+  font-weight: 700;
+}
+
+.verify-banner button {
+  flex: none;
+  align-self: center;
+  border: 1px solid #b45309;
+  border-radius: 999px;
+  background: #fff;
+  padding: 8px 14px;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.verify-banner button:hover:not(:disabled) {
+  background: #b45309;
+  color: #fff;
+}
+
+.verify-banner button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verify-chip {
+  display: inline-block;
+  margin-left: 8px;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+.verify-chip.is-verified {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.verify-chip.is-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.auth-sent__icon.is-success {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.auth-sent__icon.is-warning {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.verify-resend {
+  margin-top: 18px;
+  text-align: left;
+}
+
+@media (max-width: 560px) {
+  .verify-banner {
+    flex-wrap: wrap;
+  }
+
+  .verify-banner button {
+    width: 100%;
+  }
+}

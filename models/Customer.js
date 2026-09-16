@@ -15,6 +15,14 @@ const CustomerSchema = new mongoose.Schema({
   // leaked database dump cannot be used to take over accounts.
   resetTokenHash: { type: String, default: "" },
   resetTokenExpiresAt: { type: Date, default: null },
+
+  // Email verification. Confirms the address can actually receive mail, so
+  // order updates are not sent into a void. Stored as a hash for the same
+  // reason as the reset token.
+  emailVerified: { type: Boolean, default: false },
+  emailVerifiedAt: { type: Date, default: null },
+  verificationTokenHash: { type: String, default: "" },
+  verificationTokenExpiresAt: { type: Date, default: null },
   isCreditCustomer: { type: Boolean, default: false },
   creditLimit: { type: Number, default: 0 },
   creditBalance: { type: Number, default: 0 },

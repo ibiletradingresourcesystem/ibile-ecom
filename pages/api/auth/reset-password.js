@@ -1,4 +1,4 @@
-import { createAuthToken, hashPassword, hashResetToken, isAuthConfigured } from "@/lib/auth";
+import { createAuthToken, hashPassword, hashOneTimeToken, isAuthConfigured } from "@/lib/auth";
 import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import Customer from "@/models/Customer";
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     // Look the customer up by the hash, never by anything the caller controls
     // directly, and require the expiry to still be in the future.
     const customer = await Customer.findOne({
-      resetTokenHash: hashResetToken(token),
+      resetTokenHash: hashOneTimeToken(token),
       resetTokenExpiresAt: { $gt: new Date() },
     });
 
@@ -66,6 +66,7 @@ export default async function handler(req, res) {
         phone: customer.phone,
         address: customer.address,
         type: customer.type,
+        emailVerified: Boolean(customer.emailVerified),
       },
     });
   } catch (error) {

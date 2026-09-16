@@ -1,29 +1,26 @@
 import mongoose from "mongoose";
 
 import { connectOrRespond } from "@/lib/mongoose";
-import { getStorefrontProductPage, normalizeStorefrontProduct } from "@/lib/storefrontProducts";
+import { getStorefrontProductPage } from "@/lib/storefrontProducts";
 import Interaction from "@/models/Interaction";
 import Product from "@/models/Product";
 
 const SUGGESTION_LIMIT = 8;
 
 /**
- * Products from the same categories, excluding the ones already seen. One
- * indexed query rather than a full catalogue scan filtered in memory.
+ * Products from the same categories, excluding the ones already seen.
+ *
+ * Goes through the shared catalogue reader so suggestions obey the same rule as
+ * every other listing: in stock first, sold-out last.
  */
 async function findSuggestionsByCategory(categories, excludedIds) {
-  const rows = await Product.find({
-    isArchived: { $ne: true },
-    showOnWeb: true,
-    category: { $in: categories },
-    _id: { $nin: excludedIds },
-  })
-    .select("name description category images quantity reservedQuantity isStockManaged salePriceIncTax createdAt")
-    .sort({ createdAt: -1 })
-    .limit(SUGGESTION_LIMIT)
-    .lean();
+  const { products } = await getStorefrontProductPage({
+    limit: SUGGESTION_LIMIT,
+    categories,
+    excludeIds: excludedIds,
+  });
 
-  return rows.map(normalizeStorefrontProduct);
+  return products;
 }
 
 /**

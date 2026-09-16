@@ -38,8 +38,16 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password });
-      router.push("/account");
+      const result = await register({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+
+      // Tell them where the confirmation link went before dropping them into
+      // the account area, and be honest when it could not be sent.
+      router.push(result?.verificationSent === false ? "/account?verify=failed" : "/account?verify=sent");
     } catch (err) {
       setError(err.message);
     } finally {

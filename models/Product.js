@@ -23,6 +23,10 @@ const ProductSchema = new Schema(
     quantity: { type: Number, default: 0 },
     reservedQuantity: { type: Number, default: 0 },
     isStockManaged: { type: Boolean, default: true },
+    // Set in the inventory app ("Show on website"). Every storefront query
+    // filters on it, so it has to be declared here too — an undeclared path is
+    // stripped on write and is easy to get silently wrong.
+    showOnWeb: { type: Boolean, default: true },
     minStock: { type: Number, default: 0 },
     maxStock: { type: Number, default: 0 },
     isChildProduct: { type: Boolean, default: false },

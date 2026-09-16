@@ -1,4 +1,5 @@
 import { createAuthToken, hashPassword, isAuthConfigured } from "@/lib/auth";
+import { issueEmailVerification } from "@/lib/emailVerification";
 import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, isValidPhone, sanitizeString } from "@/lib/validation";
@@ -66,10 +67,13 @@ export default async function handler(req, res) {
       existing.updatedAt = new Date();
       await existing.save();
 
+      const claimed = await issueEmailVerification(existing);
+
       return res.status(200).json({
         success: true,
         token: createAuthToken(existing._id),
         customer: publicCustomer(existing),
+        verificationSent: claimed.sent,
       });
     }
 
@@ -82,10 +86,16 @@ export default async function handler(req, res) {
       type: "ONLINE",
     });
 
+    // The account exists either way. If the link cannot go out right now the
+    // customer is signed in and prompted to resend, rather than being turned
+    // away from a registration that actually succeeded.
+    const verification = await issueEmailVerification(customer);
+
     return res.status(201).json({
       success: true,
       token: createAuthToken(customer._id),
       customer: publicCustomer(customer),
+      verificationSent: verification.sent,
     });
   } catch (err) {
     // Unique index on email — a concurrent signup beat this request.
@@ -106,5 +116,6 @@ function publicCustomer(customer) {
     phone: customer.phone,
     address: customer.address,
     type: customer.type,
+    emailVerified: Boolean(customer.emailVerified),
   };
 }

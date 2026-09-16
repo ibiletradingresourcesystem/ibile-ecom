@@ -62,6 +62,7 @@ function publicCustomer(customer) {
     phone: customer.phone,
     address: customer.address,
     type: customer.type,
+    emailVerified: Boolean(customer.emailVerified),
     createdAt: customer.createdAt,
   };
 }

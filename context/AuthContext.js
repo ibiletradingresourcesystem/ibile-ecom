@@ -90,6 +90,33 @@ export function AuthProvider({ children }) {
     setCustomer(nextCustomer);
   }, []);
 
+  /**
+   * Asks for a fresh verification link for the signed-in customer.
+   */
+  const resendVerification = useCallback(async () => {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not send the email");
+    return data;
+  }, []);
+
+  /**
+   * Re-reads the profile, so a customer who verifies in another tab sees the
+   * prompt disappear without signing out and in again.
+   */
+  const refreshProfile = useCallback(async () => {
+    const token = localStorage.getItem("customerToken");
+    if (token) await fetchProfile(token);
+  }, []);
+
   const logout = () => {
     localStorage.removeItem("customerToken");
     setCustomer(null);
@@ -128,12 +155,15 @@ export function AuthProvider({ children }) {
       login,
       register,
       applySession,
+      resendVerification,
+      refreshProfile,
       logout,
       updateProfile,
       wishlist,
       toggleWishlist,
       isInWishlist,
       isAuthenticated: !!customer,
+      isEmailVerified: Boolean(customer?.emailVerified),
     }}>
       {children}
     </AuthContext.Provider>
