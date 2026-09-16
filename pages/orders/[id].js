@@ -18,18 +18,24 @@ import { getStoredOrderToken } from "@/lib/guestOrders";
 
 const naira = (value) => `₦${Math.round(Number(value) || 0).toLocaleString()}`;
 
-// The journey a cash-on-delivery order takes. Statuses outside this list
-// (cancelled, expired) are rendered as their own terminal state instead.
-const DELIVERY_STEPS = ["Pending", "Confirmed", "Processing", "Out for Delivery", "Delivered"];
-const PICKUP_STEPS = ["Pending", "Confirmed", "Processing", "Ready for Pickup", "Delivered"];
+// These are the only fulfilment statuses the inventory app can set, so the
+// timeline mirrors them exactly rather than inventing steps staff cannot reach.
+const ORDER_STEPS = ["Pending", "Processing", "Shipped", "Delivered"];
 
+// "Shipped" means "left our hands", which reads differently for a collection.
 const STEP_LABELS = {
-  Pending: "Order placed",
-  Confirmed: "Confirmed by store",
-  Processing: "Being prepared",
-  "Out for Delivery": "Out for delivery",
-  "Ready for Pickup": "Ready for pickup",
-  Delivered: "Completed",
+  delivery: {
+    Pending: "Order placed",
+    Processing: "Being prepared",
+    Shipped: "Out for delivery",
+    Delivered: "Delivered",
+  },
+  pickup: {
+    Pending: "Order placed",
+    Processing: "Being prepared",
+    Shipped: "Ready for collection",
+    Delivered: "Collected",
+  },
 };
 
 const TERMINAL_STATUSES = {
@@ -140,9 +146,10 @@ export default function OrderDetailPage() {
   }
 
   const isPickup = order.deliveryMethod === "pickup";
-  const steps = isPickup ? PICKUP_STEPS : DELIVERY_STEPS;
+  const stepLabels = STEP_LABELS[isPickup ? "pickup" : "delivery"];
   const terminal = TERMINAL_STATUSES[order.status];
-  const currentStep = steps.indexOf(order.status);
+  // Statuses that predate fulfilment all sit at the first step.
+  const currentStep = Math.max(0, ORDER_STEPS.indexOf(order.status));
   const storePhone = store?.storePhone || "";
 
   return (
@@ -180,7 +187,7 @@ export default function OrderDetailPage() {
                 </span>
               </div>
               <span className={`order-status ${terminal ? terminal.tone : "is-active"}`}>
-                {terminal ? terminal.title : STEP_LABELS[order.status] || order.status}
+                {terminal ? terminal.title : stepLabels[order.status] || order.status}
               </span>
             </div>
 
@@ -194,14 +201,14 @@ export default function OrderDetailPage() {
               </div>
             ) : (
               <ol className="order-progress">
-                {steps.map((step, index) => (
+                {ORDER_STEPS.map((step, index) => (
                   <li
                     key={step}
                     className={index <= currentStep ? "is-done" : ""}
                     aria-current={index === currentStep ? "step" : undefined}
                   >
                     <span />
-                    <small>{STEP_LABELS[step] || step}</small>
+                    <small>{stepLabels[step] || step}</small>
                   </li>
                 ))}
               </ol>
@@ -260,10 +267,8 @@ export default function OrderDetailPage() {
                     <p>
                       {order.shippingDetails?.address}
                       {order.shippingDetails?.city ? `, ${order.shippingDetails.city}` : ""}
-                      {order.deliveryZoneName ? ` (${order.deliveryZoneName})` : ""}
                     </p>
                   )}
-                  {order.deliveryEta && <p>Estimated: {order.deliveryEta}</p>}
                 </div>
               </div>
 

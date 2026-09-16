@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
+import PasswordInput from "@/components/account/PasswordInput";
 import { useAuth } from "@/context/AuthContext";
 
 // Kept in step with the minimum enforced by /api/auth/register.
@@ -69,14 +70,27 @@ export default function RegisterPage() {
               <span>Phone number</span>
               <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="080xxxxxxxx" />
             </label>
-            <label>
-              <span>Password *</span>
-              <input type="password" name="password" value={form.password} onChange={handleChange} required placeholder="At least 8 characters" minLength={MIN_PASSWORD_LENGTH} />
-            </label>
-            <label>
-              <span>Confirm password *</span>
-              <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required placeholder="Re-enter password" minLength={MIN_PASSWORD_LENGTH} />
-            </label>
+            <PasswordInput
+              label="Password *"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              hint="Use at least 8 characters."
+            />
+            <PasswordInput
+              label="Confirm password *"
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+              autoComplete="new-password"
+              placeholder="Re-enter password"
+            />
             <button type="submit" disabled={loading} className="auth-submit">
               {loading ? "Creating account..." : "Create account"}
             </button>

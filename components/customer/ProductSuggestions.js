@@ -1,66 +1,80 @@
 import { useEffect, useState } from "react";
-import ProductCard from "@/components/product/ProductCard";
-import SectionWrapper from "@/components/sections/SectionWrapper";
 
-export default function ProductSuggestions({ userId }) {
+import ProductCard from "@/components/product/ProductCard";
+
+/**
+ * "You may also like" strip. Built from what this browser has recently viewed,
+ * so it needs no account and no extra catalogue download.
+ */
+export default function ProductSuggestions({ excludeId = "", title = "You may also like" }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        let url = "/api/suggestions";
+    let cancelled = false;
 
-        if (userId) {
-          // Logged-in user
-          url += `?userId=${userId}`;
-        } else {
-          // Guest: Use recent views from localStorage
+    async function fetchSuggestions() {
+      try {
+        const params = new URLSearchParams();
+
+        try {
           const recentViews = JSON.parse(localStorage.getItem("recentViews") || "[]");
-          if (recentViews.length > 0) {
-            url += `?recentIds=${recentViews.join(",")}`;
+          if (Array.isArray(recentViews) && recentViews.length > 0) {
+            params.set("recentIds", recentViews.slice(0, 10).join(","));
           }
+        } catch {
+          // No usable history in this browser; fall back to the default list.
         }
 
-        const res = await fetch(url);
+        const res = await fetch(`/api/suggestions?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch suggestions");
 
         const data = await res.json();
-        setProducts(data.slice(0, 4));
-      } catch (err) {
-        console.error("Error fetching suggestions:", err);
+        if (cancelled) return;
+
+        setProducts(
+          (Array.isArray(data) ? data : [])
+            .filter((product) => String(product._id) !== String(excludeId))
+            .slice(0, 5)
+        );
+      } catch {
+        if (!cancelled) setProducts([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
+    }
 
     fetchSuggestions();
-  }, [userId]);
+    return () => { cancelled = true; };
+  }, [excludeId]);
 
   if (loading) {
     return (
-      <SectionWrapper title="Products You May Like">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div
-              key={index}
-              className="h-80 animate-pulse rounded-3xl border border-blue-100 bg-blue-50"
-            />
+      <section className="market-section" aria-busy="true">
+        <div className="market-section__heading">
+          <div><h2>{title}</h2></div>
+        </div>
+        <div className="market-product-grid">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className="market-product-skeleton" />
           ))}
         </div>
-      </SectionWrapper>
+      </section>
     );
   }
 
-  if (!products.length) return null;
+  if (products.length === 0) return null;
 
-   return (
-    <SectionWrapper title="Products You May Like">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+  return (
+    <section className="market-section">
+      <div className="market-section__heading">
+        <div><h2>{title}</h2></div>
+      </div>
+      <div className="market-product-grid">
         {products.map((product) => (
-          <ProductCard key={product._id} product={product} badge="You May Like" />
+          <ProductCard key={product._id} product={product} />
         ))}
       </div>
-    </SectionWrapper>
+    </section>
   );
 }

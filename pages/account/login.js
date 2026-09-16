@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
+
+import PasswordInput from "@/components/account/PasswordInput";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -39,17 +41,36 @@ export default function LoginPage() {
           <h1>Welcome back</h1>
           <p>Sign in to your IbileMart account</p>
 
-          {error && <div className="auth-error">{error}</div>}
+          {error && <div className="auth-error" role="alert">{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <label>
               <span>Email address</span>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
             </label>
-            <label>
-              <span>Password</span>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} />
-            </label>
+
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              placeholder="Your password"
+            />
+
+            <div className="auth-row">
+              <Link href="/account/forgot-password" className="auth-link">
+                Forgot your password?
+              </Link>
+            </div>
+
             <button type="submit" disabled={loading} className="auth-submit">
               {loading ? "Signing in..." : "Sign in"}
             </button>

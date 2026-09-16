@@ -80,6 +80,16 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  /**
+   * Adopts a session handed back by an endpoint that already authenticated the
+   * customer (password reset), without a second round trip to sign in.
+   */
+  const applySession = useCallback((token, nextCustomer) => {
+    if (!token || !nextCustomer) return;
+    localStorage.setItem("customerToken", token);
+    setCustomer(nextCustomer);
+  }, []);
+
   const logout = () => {
     localStorage.removeItem("customerToken");
     setCustomer(null);
@@ -117,6 +127,7 @@ export function AuthProvider({ children }) {
       loading,
       login,
       register,
+      applySession,
       logout,
       updateProfile,
       wishlist,

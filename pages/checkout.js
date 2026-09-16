@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Banknote,
-  MapPin,
   PackageCheck,
   PhoneCall,
   ShieldCheck,
@@ -37,7 +36,6 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState(initialForm);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
-  const [deliveryZoneId, setDeliveryZoneId] = useState("");
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pricing, setPricing] = useState(null);
@@ -47,8 +45,8 @@ export default function CheckoutPage() {
   const [prefilled, setPrefilled] = useState(false);
 
   const deliverySettings = store?.delivery;
-  const zones = useMemo(() => deliverySettings?.zones || [], [deliverySettings]);
   const pickupAvailable = deliverySettings?.pickupAvailable !== false;
+  const locations = useMemo(() => store?.locations || [], [store]);
   const isDelivery = deliveryMethod === "delivery";
 
   // Prefill from the signed-in profile so returning customers do not retype
@@ -66,11 +64,12 @@ export default function CheckoutPage() {
     setPrefilled(true);
   }, [customer, isAuthenticated, prefilled]);
 
+  // Only one branch: no need to make the customer pick it.
   useEffect(() => {
-    if (zones.length > 0 && !deliveryZoneId) {
-      setDeliveryZoneId(zones[0].id);
+    if (locations.length === 1 && !selectedLocation) {
+      setSelectedLocation(locations[0]._id);
     }
-  }, [zones, deliveryZoneId]);
+  }, [locations, selectedLocation]);
 
   const cartSignature = useMemo(
     () => cart.map((item) => `${item._id}:${item.quantity}`).join("|"),
@@ -81,7 +80,7 @@ export default function CheckoutPage() {
 
   /**
    * Re-prices the cart against live inventory and asks the server for the
-   * delivery fee, so the amount shown here is the amount the rider will collect.
+   * delivery fee, so the amount shown here is the amount that will be collected.
    */
   const revalidate = useCallback(async () => {
     if (!cartLoaded || cart.length === 0) {
@@ -101,7 +100,6 @@ export default function CheckoutPage() {
             name: item.name,
           })),
           deliveryMethod,
-          deliveryZoneId,
         }),
       });
 
@@ -125,20 +123,30 @@ export default function CheckoutPage() {
     } catch {
       // Keep the locally cached totals; the server re-prices on submit anyway.
     }
-  }, [cart, cartLoaded, deliveryMethod, deliveryZoneId, syncCartWithServer]);
+  }, [cart, cartLoaded, deliveryMethod, syncCartWithServer]);
 
   useEffect(() => {
     revalidate();
     // cartSignature keeps this from re-firing on every unrelated cart re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartSignature, cartLoaded, deliveryMethod, deliveryZoneId]);
+  }, [cartSignature, cartLoaded, deliveryMethod]);
 
   const subtotal = pricing?.subtotal ?? totalAmount;
   const deliveryQuote = pricing?.delivery;
-  const deliveryFee = isDelivery ? deliveryQuote?.fee ?? 0 : 0;
+
+  // The store sets delivery pricing in the inventory app. When it has not set
+  // any, nothing is added here and the fee is settled on the confirmation call.
+  const deliveryConfigured = isDelivery
+    ? deliveryQuote?.configured ?? deliverySettings?.configured ?? false
+    : true;
+  const deliveryFee = isDelivery && deliveryConfigured ? deliveryQuote?.fee ?? 0 : 0;
   const total = subtotal + deliveryFee;
-  const freeDeliveryThreshold = deliverySettings?.freeDeliveryThreshold || 0;
-  const amountToFreeDelivery = freeDeliveryThreshold - subtotal;
+
+  const deliveryFeeLabel = !isDelivery
+    ? "Free"
+    : deliveryConfigured
+      ? naira(deliveryFee)
+      : "Confirmed by store";
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -153,8 +161,8 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (isDelivery && zones.length > 0 && !deliveryZoneId) {
-      setStatus({ type: "error", message: "Please choose a delivery area." });
+    if (!isDelivery && locations.length > 0 && !selectedLocation) {
+      setStatus({ type: "error", message: "Please choose which store you will collect from." });
       return;
     }
 
@@ -162,7 +170,7 @@ export default function CheckoutPage() {
     setStatus({ type: "idle", message: "" });
 
     try {
-      const location = store?.locations?.find((loc) => loc._id === selectedLocation);
+      const location = locations.find((loc) => loc._id === selectedLocation);
       const token = typeof window !== "undefined" ? localStorage.getItem("customerToken") : null;
 
       const orderResponse = await fetch("/api/orders", {
@@ -175,7 +183,6 @@ export default function CheckoutPage() {
           items: cart.map((item) => ({ productId: item._id, quantity: item.quantity })),
           customer: form,
           deliveryMethod,
-          deliveryZoneId: isDelivery ? deliveryZoneId : "",
           deliveryNotes,
           locationId: selectedLocation || undefined,
           locationName: location?.name || "",
@@ -260,11 +267,11 @@ export default function CheckoutPage() {
                     <span>
                       <strong>Deliver to me</strong>
                       <small>
-                        {deliveryQuote?.freeDeliveryApplied
-                          ? "Free delivery on this order"
-                          : deliveryFee > 0
+                        {deliveryConfigured
+                          ? deliveryFee > 0
                             ? `${naira(deliveryFee)} delivery fee`
-                            : "Fee confirmed at checkout"}
+                            : "No delivery fee"
+                          : "Fee confirmed by the store"}
                       </small>
                     </span>
                   </button>
@@ -311,7 +318,7 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <label className="checkout-fields__wide">
-                  Email <span className="checkout-optional">— for your order updates</span>
+                  Email <span className="checkout-optional">&mdash; for your order updates</span>
                   <input
                     type="email"
                     name="email"
@@ -321,7 +328,7 @@ export default function CheckoutPage() {
                   />
                 </label>
 
-                {isDelivery && (
+                {isDelivery ? (
                   <>
                     <label>
                       City or town
@@ -334,22 +341,15 @@ export default function CheckoutPage() {
                       />
                     </label>
 
-                    {zones.length > 0 && (
-                      <label>
-                        Delivery area
-                        <select
-                          required
-                          value={deliveryZoneId}
-                          onChange={(event) => setDeliveryZoneId(event.target.value)}
-                        >
-                          {zones.map((zone) => (
-                            <option key={zone.id} value={zone.id}>
-                              {zone.name} — {zone.fee > 0 ? naira(zone.fee) : "Free"}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
+                    <label>
+                      Nearest landmark <span className="checkout-optional">&mdash; optional</span>
+                      <input
+                        name="landmark"
+                        placeholder="e.g. opposite the filling station"
+                        value={form.landmark}
+                        onChange={handleChange}
+                      />
+                    </label>
 
                     <label className="checkout-fields__wide">
                       Delivery address
@@ -362,29 +362,36 @@ export default function CheckoutPage() {
                         rows={3}
                       />
                     </label>
-
-                    <label className="checkout-fields__wide">
-                      Nearest landmark <span className="checkout-optional">— optional</span>
-                      <input
-                        name="landmark"
-                        placeholder="e.g. opposite the filling station"
-                        value={form.landmark}
-                        onChange={handleChange}
-                      />
-                    </label>
                   </>
+                ) : (
+                  locations.length > 0 && (
+                    <label className="checkout-fields__wide">
+                      Pick up from
+                      <select
+                        required
+                        value={selectedLocation}
+                        onChange={(e) => setSelectedLocation(e.target.value)}
+                      >
+                        <option value="">Select a store</option>
+                        {locations.map((loc) => (
+                          <option key={loc._id} value={loc._id}>
+                            {loc.name}{loc.address ? ` — ${loc.address}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )
                 )}
 
-                {store?.locations?.length > 0 && (!isDelivery || store.locations.length > 1) && (
-                  <label className={!isDelivery ? "checkout-fields__wide" : undefined}>
-                    {isDelivery ? "Preferred store location" : "Pick up from"}
+                {isDelivery && locations.length > 1 && (
+                  <label className="checkout-fields__wide">
+                    Preferred store location <span className="checkout-optional">&mdash; optional</span>
                     <select
-                      required={!isDelivery}
                       value={selectedLocation}
                       onChange={(e) => setSelectedLocation(e.target.value)}
                     >
-                      <option value="">Select a location</option>
-                      {store.locations.map((loc) => (
+                      <option value="">No preference</option>
+                      {locations.map((loc) => (
                         <option key={loc._id} value={loc._id}>
                           {loc.name}{loc.address ? ` — ${loc.address}` : ""}
                         </option>
@@ -394,7 +401,7 @@ export default function CheckoutPage() {
                 )}
 
                 <label className="checkout-fields__wide">
-                  Order notes <span className="checkout-optional">— optional</span>
+                  Order notes <span className="checkout-optional">&mdash; optional</span>
                   <textarea
                     name="deliveryNotes"
                     value={deliveryNotes}
@@ -432,8 +439,12 @@ export default function CheckoutPage() {
                 <PhoneCall />
                 <div><strong>We call to confirm</strong><p>
                   A store representative will call {form.phone ? form.phone : "the number above"} to
-                  confirm your order and {isDelivery ? "arrange delivery" : "let you know when it is ready"}.
-                  Please keep {naira(total)} ready in cash.
+                  confirm your order
+                  {isDelivery
+                    ? deliveryConfigured
+                      ? " and arrange delivery."
+                      : " , confirm the delivery fee for your area, and arrange delivery."
+                    : " and let you know when it is ready."}
                 </p></div>
               </div>
 
@@ -451,7 +462,9 @@ export default function CheckoutPage() {
                 disabled={submitting || cart.length === 0}
                 className="checkout-submit"
               >
-                {submitting ? "Placing your order..." : `Place order — pay ${naira(total)} on ${isDelivery ? "delivery" : "pickup"}`}
+                {submitting
+                  ? "Placing your order..."
+                  : `Place order — pay ${naira(total)} on ${isDelivery ? "delivery" : "pickup"}`}
               </button>
             </form>
 
@@ -493,15 +506,7 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <span>{isDelivery ? "Delivery" : "Store pickup"}</span>
-                  <span>
-                    {!isDelivery
-                      ? "Free"
-                      : deliveryQuote && !deliveryQuote.valid
-                        ? "Select an area"
-                        : deliveryFee > 0
-                          ? naira(deliveryFee)
-                          : "Free"}
-                  </span>
+                  <span>{deliveryFeeLabel}</span>
                 </div>
                 <div className="checkout-summary__total">
                   <span>Total</span>
@@ -509,27 +514,12 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {isDelivery && freeDeliveryThreshold > 0 && amountToFreeDelivery > 0 && (
-                <div className="checkout-summary__note checkout-summary__note--promo">
-                  <Truck />
-                  <span>Add {naira(amountToFreeDelivery)} more to qualify for free delivery.</span>
-                </div>
-              )}
-
-              {isDelivery && deliveryQuote?.eta && (
-                <div className="checkout-summary__note">
-                  <Truck />
-                  <span>Estimated delivery: {deliveryQuote.eta}</span>
-                </div>
-              )}
-
               <div className="checkout-summary__note">
                 <Banknote />
-                <span>Pay {naira(total)} in cash when you receive your order.</span>
-              </div>
-              <div className="checkout-summary__note">
-                <MapPin />
-                <span>Orders are processed through the Ibile inventory workflow for fulfilment and stock control.</span>
+                <span>
+                  Pay {naira(total)} in cash when you receive your order
+                  {isDelivery && !deliveryConfigured ? ", plus any delivery fee the store confirms." : "."}
+                </span>
               </div>
               <div className="checkout-summary__note checkout-summary__note--stock">
                 <PackageCheck />

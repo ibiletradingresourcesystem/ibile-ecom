@@ -103,24 +103,14 @@ export default async function handler(req, res) {
   });
 
   const store = await loadStoreSettings();
-  const delivery = quoteDelivery({
-    store,
-    method: req.body?.deliveryMethod,
-    zoneId: sanitizeString(req.body?.deliveryZoneId, 60),
-    subtotal,
-  });
-
-  const deliveryFee = delivery.valid ? delivery.fee : 0;
+  const delivery = quoteDelivery({ store, method: req.body?.deliveryMethod });
 
   return res.status(200).json({
     success: true,
     items,
     changes,
     subtotal,
-    delivery: {
-      ...delivery,
-      fee: deliveryFee,
-    },
-    total: subtotal + deliveryFee,
+    delivery,
+    total: subtotal + delivery.fee,
   });
 }

@@ -11,6 +11,10 @@ const CustomerSchema = new mongoose.Schema({
     enum: ["REGULAR", "VIP", "NEW", "INACTIVE", "BULK_BUYER", "ONLINE", "CREDIT"],
     default: "ONLINE",
   },
+  // Password reset. Only the SHA-256 hash of the emailed token is stored, so a
+  // leaked database dump cannot be used to take over accounts.
+  resetTokenHash: { type: String, default: "" },
+  resetTokenExpiresAt: { type: Date, default: null },
   isCreditCustomer: { type: Boolean, default: false },
   creditLimit: { type: Number, default: 0 },
   creditBalance: { type: Number, default: 0 },

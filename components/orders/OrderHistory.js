@@ -118,7 +118,6 @@ export default function OrderHistory({ limit = 0 }) {
             <span className="order-history__meta">
               {order.deliveryMethod === "pickup" ? <Store size={14} /> : <Truck size={14} />}
               {order.deliveryMethod === "pickup" ? "Store pickup" : "Delivery"}
-              {order.deliveryZoneName ? ` · ${order.deliveryZoneName}` : ""}
             </span>
           </div>
           <div className="order-history__amount">

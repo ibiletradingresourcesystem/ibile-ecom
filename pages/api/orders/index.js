@@ -84,7 +84,6 @@ async function handleCreateOrder(req, res) {
       locationId: req.body?.locationId,
       locationName: sanitizeString(req.body?.locationName, 120),
       deliveryMethod,
-      deliveryZoneId: sanitizeString(req.body?.deliveryZoneId, 60),
       deliveryNotes: sanitizeString(req.body?.deliveryNotes, 500),
       store,
       customerId: getCustomerIdFromRequest(req),

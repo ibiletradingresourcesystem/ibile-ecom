@@ -6,6 +6,7 @@ import ProductCard from "@/components/product/ProductCard";
 import ProductCategory from "@/components/layout/ProductCategory";
 import HeroBanner from "@/components/home/HeroBanner";
 import { useStore } from "@/context/StoreContext";
+import { fetchProductPage } from "@/lib/useProducts";
 
 export default function FeaturedProducts() {
   const [featured, setFeatured] = useState([]);
@@ -14,20 +15,22 @@ export default function FeaturedProducts() {
   const storePhone = store?.storePhone || "";
 
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products");
-        if (!res.ok) throw new Error("Unable to fetch products");
-        const data = await res.json();
-        setFeatured(data.slice(0, 10));
-      } catch {
-        setFeatured([]);
-      } finally {
-        setLoading(false);
-      }
-    }
+    let cancelled = false;
 
-    fetchProducts();
+    // Shared cache: if another part of the page already asked for this same
+    // first page, this resolves without a second network request.
+    fetchProductPage({ page: 1, limit: 10 })
+      .then((data) => {
+        if (!cancelled) setFeatured(data.products || []);
+      })
+      .catch(() => {
+        if (!cancelled) setFeatured([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
   return (
@@ -52,7 +55,12 @@ export default function FeaturedProducts() {
         ) : featured.length > 0 ? (
           <div className="market-product-grid">
             {featured.map((product, index) => (
-              <ProductCard key={product._id} product={product} badge={index < 2 ? "Top pick" : null} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                badge={index < 2 ? "Top pick" : null}
+                priority={index < 5}
+              />
             ))}
           </div>
         ) : (

@@ -71,9 +71,6 @@ const OrderSchema = new mongoose.Schema(
       enum: ["delivery", "pickup"],
       default: "delivery",
     },
-    deliveryZoneId: { type: String, default: "" },
-    deliveryZoneName: { type: String, default: "" },
-    deliveryEta: { type: String, default: "" },
     deliveryNotes: { type: String, default: "" },
     locationId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -103,14 +100,14 @@ const OrderSchema = new mongoose.Schema(
       default: "cash-on-delivery",
     },
     amountDueOnDelivery: { type: Number, default: 0 },
+    // Must stay identical to the inventory app's Order status enum — it is the
+    // system that actually moves orders through fulfilment. Adding a status
+    // here that it does not know would produce orders it cannot save.
     status: {
       type: String,
       enum: [
         "Pending",
-        "Confirmed",
         "Processing",
-        "Ready for Pickup",
-        "Out for Delivery",
         "Shipped",
         "Delivered",
         "Cancelled",
@@ -125,6 +122,22 @@ const OrderSchema = new mongoose.Schema(
     // or expiry knows whether it still needs to release that hold.
     stockReserved: { type: Boolean, default: false },
     reservationExpiresAt: { type: Date, default: null },
+
+    // Written by the inventory app when it fulfils or releases an order.
+    // Declared here so this app can read and query them reliably; it never
+    // writes them itself.
+    reservationStatus: {
+      type: String,
+      enum: ["active", "releasing", "released", "finalizing", "finalized", null],
+      default: "active",
+    },
+    reservationReleasedAt: { type: Date, default: null },
+    finalizedAt: { type: Date, default: null },
+    inventoryFinalizedBy: {
+      type: String,
+      enum: ["paystack", "admin", "pos", null],
+      default: null,
+    },
     deliveryPerson: {
       name: { type: String, default: "" },
       phone: { type: String, default: "" },

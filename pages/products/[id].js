@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import ProductView from "@/components/product/ProductView";
+import ProductSuggestions from "@/components/customer/ProductSuggestions";
 
 export default function ProductPage() {
   const router = useRouter();
@@ -87,6 +88,9 @@ export default function ProductPage() {
         </nav>
       </div>
       <ProductView product={product} />
+      <div className="product-detail__suggestions">
+        <ProductSuggestions excludeId={product._id} />
+      </div>
     </div>
   );
 }

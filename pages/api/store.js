@@ -7,9 +7,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  await mongooseConnect();
+  let store = null;
 
-  const store = await loadStoreSettings();
+  try {
+    await mongooseConnect();
+    store = await loadStoreSettings();
+  } catch (error) {
+    // The storefront shell reads this on every page. Failing softly keeps the
+    // site usable (minus the phone number and delivery pricing) rather than
+    // breaking the header and footer everywhere.
+    console.error("Unable to load store settings:", error.message);
+    return res.status(200).json({ success: true, store: null });
+  }
 
   if (!store) {
     return res.status(200).json({ success: true, store: null });
@@ -45,10 +54,8 @@ export default async function handler(req, res) {
       website: store.website || "",
       companyAddress: store.companyAddress || "",
       receiptMessage: store.receiptMessage || "",
-      shippingBaseCost: store.shippingBaseCost ?? 0,
-      shippingFallbackCost: store.shippingFallbackCost ?? 0,
-      // How delivery is priced, so checkout can show the fee before submitting.
-      // The server re-prices on order creation regardless of what is sent back.
+      // Delivery pricing exactly as configured in the inventory app. Checkout
+      // renders from this; the server re-prices on order creation regardless.
       delivery,
       paymentMethods: [
         {
