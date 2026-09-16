@@ -8,6 +8,7 @@ import {
   createMailTransport,
   getMailFromAddress,
   getSiteUrl,
+  isMailConfigured,
 } from "@/lib/mail";
 import { mongooseConnect } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
@@ -29,6 +30,19 @@ export default async function handler(req, res) {
 
   if (!isAuthConfigured()) {
     return res.status(503).json({ error: "Password reset is temporarily unavailable" });
+  }
+
+  // Whether an address is registered is a secret. Whether our own mail system
+  // works is not — and reporting it as success meant a misconfigured server
+  // told every customer to go and check an inbox nothing was ever sent to.
+  if (!isMailConfigured()) {
+    console.error(
+      "Password reset requested but no mail transport is configured. " +
+        "Set SMTP_HOST + SMTP_PORT, or EMAIL_USER + EMAIL_PASS, in this app's .env."
+    );
+    return res.status(503).json({
+      error: "We cannot send email right now. Please call the store to reset your password.",
+    });
   }
 
   if (enforceRateLimit(req, res, "auth:forgot", { limit: 5, windowMs: 60 * 60 * 1000 })) {
@@ -59,13 +73,6 @@ export default async function handler(req, res) {
       { $set: { resetTokenHash: tokenHash, resetTokenExpiresAt: expiresAt, updatedAt: new Date() } }
     );
 
-    const transport = createMailTransport();
-
-    if (!transport) {
-      console.error("Password reset requested but no mail transport is configured");
-      return res.status(200).json(GENERIC_RESPONSE);
-    }
-
     const resetUrl = `${getSiteUrl()}/account/reset-password?token=${encodeURIComponent(token)}`;
     const message = buildPasswordResetEmail({
       name: customer.name,
@@ -73,7 +80,7 @@ export default async function handler(req, res) {
       expiresInMinutes: PASSWORD_RESET_TTL_MINUTES,
     });
 
-    await transport.sendMail({
+    const info = await createMailTransport().sendMail({
       from: getMailFromAddress(),
       to: customer.email,
       subject: message.subject,
@@ -81,10 +88,21 @@ export default async function handler(req, res) {
       html: message.html,
     });
 
+    // Some providers accept a message then reject the recipient. Treat that as
+    // a failure rather than reporting a delivery that will not happen.
+    if (Array.isArray(info?.rejected) && info.rejected.length > 0) {
+      throw new Error(`Recipient rejected by the mail server: ${info.rejected.join(", ")}`);
+    }
+
+    console.info(`Password reset email accepted for delivery (messageId ${info?.messageId || "?"})`);
+
     return res.status(200).json(GENERIC_RESPONSE);
   } catch (error) {
-    console.error("Password reset request failed:", error.message);
-    // Still generic: a mail outage should not tell a stranger the address exists.
-    return res.status(200).json(GENERIC_RESPONSE);
+    // The address is registered and we tried to send, so the customer is
+    // waiting on an email that is not coming. Say so instead of pretending.
+    console.error("Password reset email failed to send:", error.message);
+    return res.status(502).json({
+      error: "We could not send the reset email just now. Please try again, or call the store.",
+    });
   }
 }

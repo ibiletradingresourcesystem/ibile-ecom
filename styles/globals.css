@@ -6009,34 +6009,40 @@ body::selection {
   stroke-width: 2.4;
 }
 
-/* Quantity stepper — filled brand buttons either side of a white count, so
-   both controls read clearly instead of washing out against the card. */
+/* Quantity stepper.
+
+   Square buttons clipped inside a pill left crescent-shaped corners and white
+   seams either side of the count. Instead: a soft tinted capsule holding two
+   solid circular buttons, so nothing is clipped and the control reads as one
+   object. It matches the Add button's height and pill radius, so swapping
+   between them does not reflow the card. */
 .market-product-card .market-product-card__qty {
   display: inline-flex;
   width: auto;
   height: 38px;
   flex: none;
-  align-items: stretch;
-  overflow: hidden;
-  border: 1px solid var(--brand-primary, #0b8f78);
+  align-items: center;
+  gap: 2px;
+  overflow: visible;
+  border: 0;
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface-tint, #eef8f6);
+  padding: 3px;
 }
 
 .market-product-card .market-product-card__qty button {
   display: grid;
-  width: 34px;
-  height: auto;
-  min-height: 100%;
+  width: 32px;
+  height: 32px;
   flex: none;
   place-items: center;
   border: 0;
-  border-radius: 0;
+  border-radius: 50%;
   background: var(--brand-primary, #0b8f78);
   color: #fff;
   box-shadow: none;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.12s ease;
 }
 
 .market-product-card .market-product-card__qty button:hover:not(:disabled) {
@@ -6045,32 +6051,36 @@ body::selection {
   transform: none;
 }
 
+.market-product-card .market-product-card__qty button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
 .market-product-card .market-product-card__qty button:disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: #cbd5d2;
+  color: #f3f5f5;
   cursor: not-allowed;
 }
 
 .market-product-card .market-product-card__qty button svg {
   width: 15px;
   height: 15px;
-  stroke-width: 2.6;
+  stroke-width: 3;
 }
 
 .market-product-card .market-product-card__qty span {
   display: grid;
-  width: 36px;
-  min-width: 36px;
+  width: 30px;
+  min-width: 30px;
   height: auto;
   place-items: center;
   border: 0;
-  background: #fff;
-  color: var(--text-strong, #1f2937);
+  background: transparent;
+  color: var(--brand-teal-ink, #06745f);
   font-size: 14px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
-
 .market-product-card .market-product-card__in-cart {
   display: flex;
   align-items: center;
@@ -6195,17 +6205,21 @@ body::selection {
     height: 14px;
   }
 
+  /* Keep the circles round and the capsule the same height as the Add button. */
   .market-product-card .market-product-card__qty {
     height: 36px;
+    padding: 3px;
   }
 
   .market-product-card .market-product-card__qty button {
     width: 30px;
+    height: 30px;
   }
 
   .market-product-card .market-product-card__qty span {
-    width: 30px;
-    min-width: 30px;
+    width: 26px;
+    min-width: 26px;
+    font-size: 13px;
   }
 }
 
@@ -6322,4 +6336,37 @@ body::selection {
 .auth-sent__hint {
   margin-top: 12px;
   font-size: 12px;
+}
+
+/* Product image placeholder.
+
+   A 42px glyph adrift in a ~300px square read as a broken image rather than a
+   deliberate fallback. Scaling it to the box and seating it on a soft tinted
+   disc makes an image-less product look finished. */
+.market-product-card .market-product-card__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: var(--surface-soft, #f7f8f8);
+}
+
+.market-product-card .market-product-card__placeholder::before {
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--surface-tint, #eef8f6);
+  content: "";
+}
+
+.market-product-card .market-product-card__placeholder svg {
+  position: relative;
+  width: 24%;
+  height: 24%;
+  min-width: 34px;
+  min-height: 34px;
+  color: var(--brand-primary, #0b8f78);
+  opacity: 0.75;
+  stroke-width: 1.5;
 }
