@@ -16,7 +16,10 @@ export default function App({ Component, pageProps }) {
           name="description"
           content="Shop IbileMart Store for groceries, household essentials, personal care, beverages, and everyday deals."
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
+        <link rel="apple-touch-icon" href="/images/logo-192.png" />
+        <meta name="theme-color" content="#0b8f78" />
       </Head>
       <StoreProvider>
         <AuthProvider>

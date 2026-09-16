@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import Interaction from "@/models/Interaction";
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return undefined;
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   const { productId, type = "view", userId = null } = req.body || {};
 

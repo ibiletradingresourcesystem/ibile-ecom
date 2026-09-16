@@ -1,5 +1,5 @@
 import { createAuthToken, hashPassword, isAuthConfigured, verifyPassword } from "@/lib/auth";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import Customer from "@/models/Customer";
 
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     return undefined;
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   const { email, password } = req.body || {};
 

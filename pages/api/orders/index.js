@@ -1,6 +1,6 @@
 import { createOrderAccessToken, getCustomerIdFromRequest } from "@/lib/auth";
 import { loadStoreSettings } from "@/lib/delivery";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { createOnlineOrder, expireStaleReservations, formatOrder } from "@/lib/orderLifecycle";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import { sanitizeString, validateCartItems, validateCustomerDetails } from "@/lib/validation";
@@ -8,7 +8,7 @@ import Customer from "@/models/Customer";
 import Order from "@/models/Order";
 
 export default async function handler(req, res) {
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   if (req.method === "GET") {
     return handleListOrders(req, res);

@@ -34,11 +34,15 @@ export default function Nav() {
           <div className="store-header__inner">
             <Link href="/" className="store-header__brand" aria-label="Ibile Mart home">
               <span className="store-header__logo">
+              {/* Vector mark: stays crisp on high-density screens and needs no
+                  image optimisation, so it is served as-is. */}
               <Image
-                src="/images/Logo.png"
-                  alt=""
+                src="/images/logo.svg"
+                alt=""
                 fill
-                  sizes="44px"
+                sizes="44px"
+                priority
+                unoptimized
                 className="object-contain"
               />
               </span>

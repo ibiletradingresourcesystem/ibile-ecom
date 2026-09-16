@@ -10,7 +10,7 @@ import {
   getSiteUrl,
   isMailConfigured,
 } from "@/lib/mail";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import { isValidEmail, sanitizeString } from "@/lib/validation";
 import Customer from "@/models/Customer";
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Enter a valid email address" });
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   try {
     const customer = await Customer.findOne({ email }).select("_id name email password");
@@ -73,7 +73,18 @@ export default async function handler(req, res) {
       { $set: { resetTokenHash: tokenHash, resetTokenExpiresAt: expiresAt, updatedAt: new Date() } }
     );
 
-    const resetUrl = `${getSiteUrl()}/account/reset-password?token=${encodeURIComponent(token)}`;
+    const siteUrl = getSiteUrl();
+
+    // The link in the email is built from NEXT_PUBLIC_SITE_URL. Left at its
+    // default, every customer receives a link to their own machine.
+    if (/localhost|127\.0\.0\.1/i.test(siteUrl)) {
+      console.warn(
+        `NEXT_PUBLIC_SITE_URL is "${siteUrl}" — password reset links will point at ` +
+          "localhost and will not work for customers. Set it to the public site address."
+      );
+    }
+
+    const resetUrl = `${siteUrl}/account/reset-password?token=${encodeURIComponent(token)}`;
     const message = buildPasswordResetEmail({
       name: customer.name,
       resetUrl,

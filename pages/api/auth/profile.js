@@ -1,5 +1,5 @@
 import { getCustomerIdFromRequest } from "@/lib/auth";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { isValidPhone, sanitizeString } from "@/lib/validation";
 import Customer from "@/models/Customer";
 
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   // Tokens are HMAC-signed, so this id cannot be swapped for someone else's.
   const customerId = getCustomerIdFromRequest(req);

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import { getCustomerIdFromRequest, verifyOrderAccessToken } from "@/lib/auth";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { cancelOnlineOrder, formatOrder } from "@/lib/orderLifecycle";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import { sanitizeString } from "@/lib/validation";
@@ -34,7 +34,7 @@ async function authorizeOrderAccess(req, order) {
 }
 
 export default async function handler(req, res) {
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   const { id } = req.query;
   if (!mongoose.Types.ObjectId.isValid(String(id))) {

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { getStorefrontProductPage, normalizeStorefrontProduct } from "@/lib/storefrontProducts";
 import Interaction from "@/models/Interaction";
 import Product from "@/models/Product";
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   const { userId = null, recentIds = "" } = req.query;
 

@@ -1,5 +1,5 @@
 import { createAuthToken, hashPassword, hashResetToken, isAuthConfigured } from "@/lib/auth";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import Customer from "@/models/Customer";
 
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       .json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   try {
     // Look the customer up by the hash, never by anything the caller controls

@@ -1,5 +1,5 @@
 import { loadStoreSettings, quoteDelivery } from "@/lib/delivery";
-import { mongooseConnect } from "@/lib/mongoose";
+import { connectOrRespond } from "@/lib/mongoose";
 import { getAvailableQuantity } from "@/lib/stock";
 import { enforceRateLimit } from "@/lib/rateLimit";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     return undefined;
   }
 
-  await mongooseConnect();
+  if (!(await connectOrRespond(res))) return undefined;
 
   const requestedItems = Array.isArray(req.body?.items) ? req.body.items.slice(0, 100) : [];
   const ids = [
