@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useState, useCallback } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { getCategoryIcon } from "@/lib/categoryIcons";
 
@@ -9,12 +10,11 @@ import { getCategoryIcon } from "@/lib/categoryIcons";
 
 export default function ProductCard({ product, badge }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const [wishlisted, setWishlisted] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const stored = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    return stored.includes(product._id);
-  });
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
+  // The wishlist lives in AuthContext so the card and the account page agree on
+  // what is saved and on the shape it is stored in.
+  const { isInWishlist, toggleWishlist } = useAuth();
+  const wishlisted = isInWishlist(product._id);
   const productImage =
     product.images && product.images[0]
       ? product.images[0]
@@ -50,20 +50,11 @@ export default function ProductCard({ product, badge }) {
     }
   }, [removeFromCart, updateQuantity, product._id, cartQty]);
 
-  const toggleWishlist = useCallback((e) => {
+  const handleToggleWishlist = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlisted((prev) => {
-      const stored = JSON.parse(localStorage.getItem("wishlist") || "[]");
-      const next = !prev;
-      if (next) {
-        localStorage.setItem("wishlist", JSON.stringify([...stored, product._id]));
-      } else {
-        localStorage.setItem("wishlist", JSON.stringify(stored.filter((id) => id !== product._id)));
-      }
-      return next;
-    });
-  }, [product._id]);
+    toggleWishlist(product);
+  }, [toggleWishlist, product]);
 
   
   return (
@@ -88,7 +79,8 @@ export default function ProductCard({ product, badge }) {
         <button
           type="button"
           className={`market-product-card__wishlist ${wishlisted ? "is-active" : ""}`}
-          onClick={toggleWishlist}
+          onClick={handleToggleWishlist}
+          aria-pressed={wishlisted}
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart />

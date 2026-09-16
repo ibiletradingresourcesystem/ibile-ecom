@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
 import { useAuth } from "@/context/AuthContext";
+
+// Kept in step with the minimum enforced by /api/auth/register.
+const MIN_PASSWORD_LENGTH = 8;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -11,16 +14,21 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (isAuthenticated) {
-    router.replace("/account");
-    return null;
-  }
+  // Redirect after paint rather than during render, which React warns about.
+  useEffect(() => {
+    if (isAuthenticated) router.replace("/account");
+  }, [isAuthenticated, router]);
 
   const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (form.password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+      return;
+    }
 
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
@@ -63,11 +71,11 @@ export default function RegisterPage() {
             </label>
             <label>
               <span>Password *</span>
-              <input type="password" name="password" value={form.password} onChange={handleChange} required placeholder="At least 6 characters" minLength={6} />
+              <input type="password" name="password" value={form.password} onChange={handleChange} required placeholder="At least 8 characters" minLength={MIN_PASSWORD_LENGTH} />
             </label>
             <label>
               <span>Confirm password *</span>
-              <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required placeholder="Re-enter password" minLength={6} />
+              <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required placeholder="Re-enter password" minLength={MIN_PASSWORD_LENGTH} />
             </label>
             <button type="submit" disabled={loading} className="auth-submit">
               {loading ? "Creating account..." : "Create account"}

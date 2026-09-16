@@ -17,11 +17,21 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Load wishlist from localStorage
+  // Load wishlist from localStorage. Older builds stored bare product ids here
+  // while this context stores full products, so anything that is not a product
+  // object is dropped rather than rendered as an empty row.
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("wishlist") || "[]");
-      setWishlist(saved);
+      const products = Array.isArray(saved)
+        ? saved.filter((entry) => entry && typeof entry === "object" && entry._id)
+        : [];
+
+      setWishlist(products);
+
+      if (!Array.isArray(saved) || products.length !== saved.length) {
+        localStorage.setItem("wishlist", JSON.stringify(products));
+      }
     } catch { setWishlist([]); }
   }, []);
 

@@ -1,21 +1,22 @@
+import { createAuthToken, hashPassword, isAuthConfigured, verifyPassword } from "@/lib/auth";
 import { mongooseConnect } from "@/lib/mongoose";
+import { enforceRateLimit } from "@/lib/rateLimit";
 import Customer from "@/models/Customer";
-import crypto from "crypto";
-
-function verifyPassword(password, stored) {
-  const [salt, hash] = stored.split(":");
-  const attempt = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
-  return attempt === hash;
-}
-
-function generateToken(customerId) {
-  const payload = JSON.stringify({ id: customerId, ts: Date.now() });
-  return Buffer.from(payload).toString("base64url");
-}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!isAuthConfigured()) {
+    console.error("AUTH_SECRET is not set — customer sign-in is disabled");
+    return res.status(503).json({ error: "Sign-in is temporarily unavailable" });
+  }
+
+  // Slows credential stuffing to a crawl without inconveniencing real people.
+  if (enforceRateLimit(req, res, "auth:login", { limit: 10, windowMs: 15 * 60 * 1000 })) {
+    return undefined;
   }
 
   await mongooseConnect();
@@ -30,23 +31,28 @@ export default async function handler(req, res) {
 
   try {
     const customer = await Customer.findOne({ email: emailNorm });
-    if (!customer) {
+
+    // Same message and shape for "no such account" and "wrong password", so the
+    // endpoint cannot be used to enumerate which emails are registered.
+    if (!customer?.password) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    if (!customer.password) {
-      return res.status(401).json({ error: "Please register to create a password for your account" });
-    }
-
-    if (!verifyPassword(password, customer.password)) {
+    const { valid, needsRehash } = verifyPassword(password, customer.password);
+    if (!valid) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken(customer._id);
+    // Transparently upgrade passwords still stored with the old iteration count.
+    if (needsRehash) {
+      customer.password = hashPassword(password);
+      customer.updatedAt = new Date();
+      await customer.save();
+    }
 
     return res.status(200).json({
       success: true,
-      token,
+      token: createAuthToken(customer._id),
       customer: {
         _id: customer._id,
         name: customer.name,

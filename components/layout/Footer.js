@@ -59,6 +59,7 @@ export default function Footer() {
           <strong>Shop</strong>
           <Link href="/products">All products</Link>
           <Link href="/checkout">Your cart</Link>
+          <Link href="/orders">Track an order</Link>
           <Link href="/account">My account</Link>
         </div>
         <div>
@@ -75,7 +76,7 @@ export default function Footer() {
           {socialLinks.filter((l) => l.platform === "WhatsApp" && l.url).map((link, i) => (
             <a key={i} href={link.url} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
           ))}
-          <span>Payment and delivery are confirmed by phone.</span>
+          <span>Pay cash on delivery. Our team confirms every order by phone.</span>
         </div>
       </div>
       <div className="store-footer__bottom">&copy; {currentYear} IbileMart Store. All rights reserved.</div>

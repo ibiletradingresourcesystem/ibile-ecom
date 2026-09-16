@@ -6,7 +6,7 @@ import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function CartSidebar({ closeSidebar = () => {} }) {
-  const { cart, removeFromCart, updateQuantity, totalAmount } = useCart();
+  const { cart, removeFromCart, updateQuantity, totalAmount, totalItems } = useCart();
   const router = useRouter();
 
   const getItemLimit = (item) => {
@@ -70,7 +70,7 @@ export default function CartSidebar({ closeSidebar = () => {} }) {
           aria-label="Shopping cart"
         >
           <div className="cart-drawer__header">
-            <div><p>Shopping bag</p><h2>Your cart <span>({cart.length})</span></h2></div>
+            <div><p>Shopping bag</p><h2>Your cart <span>({totalItems})</span></h2></div>
             <button
               type="button"
               onClick={closeSidebar}
@@ -127,9 +127,9 @@ export default function CartSidebar({ closeSidebar = () => {} }) {
           </ul>
 
           <div className="cart-drawer__summary">
-            <p>Payment and delivery will be confirmed by phone.</p>
+            <p>Cash on delivery. Delivery fees are added at checkout.</p>
             <div>
-              <span>Total</span>
+              <span>Subtotal</span>
               <span>₦{totalAmount.toLocaleString()}</span>
             </div>
             <button

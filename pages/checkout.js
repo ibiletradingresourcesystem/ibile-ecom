@@ -1,9 +1,22 @@
+import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { ArrowLeft, MapPin, PackageCheck, PhoneCall, ShieldCheck, Truck } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Banknote,
+  MapPin,
+  PackageCheck,
+  PhoneCall,
+  ShieldCheck,
+  Store,
+  Truck,
+} from "lucide-react";
 
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useStore } from "@/context/StoreContext";
+import { rememberOrder } from "@/lib/guestOrders";
 
 const initialForm = {
   name: "",
@@ -11,16 +24,121 @@ const initialForm = {
   phone: "",
   address: "",
   city: "",
+  landmark: "",
 };
+
+const naira = (value) => `₦${Math.round(Number(value) || 0).toLocaleString()}`;
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, totalAmount, clearCart } = useCart();
+  const { cart, cartLoaded, totalAmount, totalItems, clearCart, syncCartWithServer } = useCart();
   const { store } = useStore();
+  const { customer, isAuthenticated } = useAuth();
+
   const [form, setForm] = useState(initialForm);
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+  const [deliveryZoneId, setDeliveryZoneId] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [pricing, setPricing] = useState(null);
+  const [cartNotices, setCartNotices] = useState([]);
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  const deliverySettings = store?.delivery;
+  const zones = useMemo(() => deliverySettings?.zones || [], [deliverySettings]);
+  const pickupAvailable = deliverySettings?.pickupAvailable !== false;
+  const isDelivery = deliveryMethod === "delivery";
+
+  // Prefill from the signed-in profile so returning customers do not retype
+  // details the store already holds.
+  useEffect(() => {
+    if (prefilled || !isAuthenticated || !customer) return;
+
+    setForm((current) => ({
+      ...current,
+      name: current.name || customer.name || "",
+      email: current.email || customer.email || "",
+      phone: current.phone || customer.phone || "",
+      address: current.address || customer.address || "",
+    }));
+    setPrefilled(true);
+  }, [customer, isAuthenticated, prefilled]);
+
+  useEffect(() => {
+    if (zones.length > 0 && !deliveryZoneId) {
+      setDeliveryZoneId(zones[0].id);
+    }
+  }, [zones, deliveryZoneId]);
+
+  const cartSignature = useMemo(
+    () => cart.map((item) => `${item._id}:${item.quantity}`).join("|"),
+    [cart]
+  );
+
+  const appliedNoticeSignature = useRef("");
+
+  /**
+   * Re-prices the cart against live inventory and asks the server for the
+   * delivery fee, so the amount shown here is the amount the rider will collect.
+   */
+  const revalidate = useCallback(async () => {
+    if (!cartLoaded || cart.length === 0) {
+      setPricing(null);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/cart/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cart.map((item) => ({
+            productId: item._id,
+            quantity: item.quantity,
+            price: item.price,
+            name: item.name,
+          })),
+          deliveryMethod,
+          deliveryZoneId,
+        }),
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setPricing(data);
+
+      const signature = (data.changes || []).map((change) => change.message).join("|");
+
+      if (signature && signature !== appliedNoticeSignature.current) {
+        appliedNoticeSignature.current = signature;
+        setCartNotices(data.changes.map((change) => change.message));
+        syncCartWithServer(data.items);
+      } else if (!signature) {
+        // Applying the changes above re-runs this check with a now-clean cart.
+        // The notice stays on screen — it is what explains the new totals — but
+        // the signature resets so a later change can raise a fresh notice.
+        appliedNoticeSignature.current = "";
+      }
+    } catch {
+      // Keep the locally cached totals; the server re-prices on submit anyway.
+    }
+  }, [cart, cartLoaded, deliveryMethod, deliveryZoneId, syncCartWithServer]);
+
+  useEffect(() => {
+    revalidate();
+    // cartSignature keeps this from re-firing on every unrelated cart re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartSignature, cartLoaded, deliveryMethod, deliveryZoneId]);
+
+  const subtotal = pricing?.subtotal ?? totalAmount;
+  const deliveryQuote = pricing?.delivery;
+  const deliveryFee = isDelivery ? deliveryQuote?.fee ?? 0 : 0;
+  const total = subtotal + deliveryFee;
+  const freeDeliveryThreshold = deliverySettings?.freeDeliveryThreshold || 0;
+  const amountToFreeDelivery = freeDeliveryThreshold - subtotal;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -35,212 +153,392 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (isDelivery && zones.length > 0 && !deliveryZoneId) {
+      setStatus({ type: "error", message: "Please choose a delivery area." });
+      return;
+    }
+
     setSubmitting(true);
     setStatus({ type: "idle", message: "" });
 
     try {
       const location = store?.locations?.find((loc) => loc._id === selectedLocation);
+      const token = typeof window !== "undefined" ? localStorage.getItem("customerToken") : null;
+
       const orderResponse = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           items: cart.map((item) => ({ productId: item._id, quantity: item.quantity })),
           customer: form,
+          deliveryMethod,
+          deliveryZoneId: isDelivery ? deliveryZoneId : "",
+          deliveryNotes,
           locationId: selectedLocation || undefined,
           locationName: location?.name || "",
         }),
       });
+
       const orderData = await orderResponse.json();
 
       if (!orderResponse.ok || !orderData.success) {
         throw new Error(orderData.error || "Unable to create order.");
       }
 
-      clearCart();
-      setStatus({
-        type: "success",
-        message: `Order ${orderData.order.id} placed successfully. A store representative will call to confirm payment and delivery.`,
+      rememberOrder({
+        id: orderData.order.id,
+        token: orderData.accessToken,
+        orderNumber: orderData.order.orderNumber,
+        total: orderData.order.total,
+        createdAt: orderData.order.createdAt,
       });
+
+      clearCart();
+      router.push(
+        `/orders/${orderData.order.id}?token=${encodeURIComponent(orderData.accessToken || "")}&placed=1`
+      );
     } catch (error) {
       setStatus({ type: "error", message: error.message || "Checkout failed." });
-    } finally {
       setSubmitting(false);
+      revalidate();
     }
   };
 
   return (
-    <section className="checkout-page">
-      <div className="checkout-page__inner">
-        <button
-          type="button"
-          onClick={() => router.push("/products")}
-          className="checkout-page__back"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Continue shopping
-        </button>
+    <>
+      <Head><title>Checkout | IbileMart Store</title></Head>
+      <section className="checkout-page">
+        <div className="checkout-page__inner">
+          <button
+            type="button"
+            onClick={() => router.push("/products")}
+            className="checkout-page__back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Continue shopping
+          </button>
 
-        <div className="checkout-page__layout">
-          <form onSubmit={handleSubmit} className="checkout-form">
-            <div className="checkout-panel-heading">
-              <div>
-                <p>Checkout</p>
-                <h1>Delivery details</h1>
+          <div className="checkout-page__layout">
+            <form onSubmit={handleSubmit} className="checkout-form">
+              <div className="checkout-panel-heading">
+                <div>
+                  <p>Checkout</p>
+                  <h1>{isDelivery ? "Delivery details" : "Pickup details"}</h1>
+                </div>
+                <div>
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
               </div>
-              <div>
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-            </div>
 
-            <div className="checkout-fields">
-              <label>
-                Full name
-                <input
-                  required
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                Email
-                <input
-                  required
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                Phone
-                <input
-                  required
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                City
-                <input
-                  required
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                />
-              </label>
-              <label className="checkout-fields__wide">
-                Delivery address
-                <textarea
-                  required
-                  name="address"
-                  value={form.address}
-                  onChange={handleChange}
-                  rows={4}
-                />
-              </label>
-
-              {store?.locations?.length > 1 && (
-                <label>
-                  Preferred store location
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                  >
-                    <option value="">Select a location</option>
-                    {store.locations.map((loc) => (
-                      <option key={loc._id} value={loc._id}>
-                        {loc.name}{loc.address ? ` — ${loc.address}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-            </div>
-
-            <div className="checkout-call-note">
-              <PhoneCall />
-              <div><strong>Payment confirmation</strong><p>
-                A store representative will call the customer to confirm payment, delivery, and final stock release.
-              </p></div>
-            </div>
-
-            {status.message && (
-              <div
-                className={`checkout-status ${status.type === "success" ? "is-success" : "is-error"}`}
-                role={status.type === "error" ? "alert" : "status"}
-              >
-                {status.message}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting || cart.length === 0}
-              className="checkout-submit"
-            >
-              {submitting ? "Processing..." : "Place order"}
-            </button>
-          </form>
-
-          <aside className="checkout-summary">
-            <div className="checkout-panel-heading">
-              <div>
-                <p>Order summary</p>
-                <h2>Your cart</h2>
-              </div>
-              <div><Truck /></div>
-            </div>
-
-            {cart.length === 0 ? (
-              <div className="market-empty">
-                Your cart is empty.
-              </div>
-            ) : (
-              <div className="checkout-summary__items">
-                {cart.map((item) => (
-                  <div key={item._id}>
-                    <div>
-                      <strong>{item.name}</strong>
-                      <p>
-                        {item.quantity} x ₦{Number(item.price || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <strong>
-                      ₦{(Number(item.price || 0) * Number(item.quantity || 0)).toLocaleString()}
-                    </strong>
+              {cartNotices.length > 0 && (
+                <div className="checkout-notice" role="status">
+                  <AlertTriangle />
+                  <div>
+                    <strong>Your cart was updated</strong>
+                    <ul>
+                      {cartNotices.map((notice) => (
+                        <li key={notice}>{notice}</li>
+                      ))}
+                    </ul>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
 
-            <div className="checkout-summary__totals">
-              <div>
-                <span>Subtotal</span>
-                <span>₦{Number(totalAmount || 0).toLocaleString()}</span>
-              </div>
-              <div>
-                <span>Delivery</span>
-                <span>Confirmed by store</span>
-              </div>
-              <div className="checkout-summary__total">
-                <span>Total</span>
-                <span>₦{Number(totalAmount || 0).toLocaleString()}</span>
-              </div>
-            </div>
+              <fieldset className="checkout-methods">
+                <legend>How would you like to get your order?</legend>
+                <div>
+                  <button
+                    type="button"
+                    className={`checkout-method ${isDelivery ? "is-active" : ""}`}
+                    onClick={() => setDeliveryMethod("delivery")}
+                    aria-pressed={isDelivery}
+                  >
+                    <Truck />
+                    <span>
+                      <strong>Deliver to me</strong>
+                      <small>
+                        {deliveryQuote?.freeDeliveryApplied
+                          ? "Free delivery on this order"
+                          : deliveryFee > 0
+                            ? `${naira(deliveryFee)} delivery fee`
+                            : "Fee confirmed at checkout"}
+                      </small>
+                    </span>
+                  </button>
 
-            <div className="checkout-summary__note">
-              <MapPin />
-              <span>Orders are processed through the Ibile inventory workflow for fulfilment and stock control.</span>
-            </div>
-            <div className="checkout-summary__note checkout-summary__note--stock">
-              <PackageCheck />
-              <span>Stock availability is confirmed when the order is placed.</span>
-            </div>
-          </aside>
+                  {pickupAvailable && (
+                    <button
+                      type="button"
+                      className={`checkout-method ${!isDelivery ? "is-active" : ""}`}
+                      onClick={() => setDeliveryMethod("pickup")}
+                      aria-pressed={!isDelivery}
+                    >
+                      <Store />
+                      <span>
+                        <strong>Pick up in store</strong>
+                        <small>No delivery fee</small>
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </fieldset>
+
+              <div className="checkout-fields">
+                <label>
+                  Full name
+                  <input
+                    required
+                    name="name"
+                    autoComplete="name"
+                    value={form.name}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  Phone
+                  <input
+                    required
+                    type="tel"
+                    name="phone"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="08012345678"
+                    value={form.phone}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label className="checkout-fields__wide">
+                  Email <span className="checkout-optional">— for your order updates</span>
+                  <input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={handleChange}
+                  />
+                </label>
+
+                {isDelivery && (
+                  <>
+                    <label>
+                      City or town
+                      <input
+                        required
+                        name="city"
+                        autoComplete="address-level2"
+                        value={form.city}
+                        onChange={handleChange}
+                      />
+                    </label>
+
+                    {zones.length > 0 && (
+                      <label>
+                        Delivery area
+                        <select
+                          required
+                          value={deliveryZoneId}
+                          onChange={(event) => setDeliveryZoneId(event.target.value)}
+                        >
+                          {zones.map((zone) => (
+                            <option key={zone.id} value={zone.id}>
+                              {zone.name} — {zone.fee > 0 ? naira(zone.fee) : "Free"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+
+                    <label className="checkout-fields__wide">
+                      Delivery address
+                      <textarea
+                        required
+                        name="address"
+                        autoComplete="street-address"
+                        value={form.address}
+                        onChange={handleChange}
+                        rows={3}
+                      />
+                    </label>
+
+                    <label className="checkout-fields__wide">
+                      Nearest landmark <span className="checkout-optional">— optional</span>
+                      <input
+                        name="landmark"
+                        placeholder="e.g. opposite the filling station"
+                        value={form.landmark}
+                        onChange={handleChange}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {store?.locations?.length > 0 && (!isDelivery || store.locations.length > 1) && (
+                  <label className={!isDelivery ? "checkout-fields__wide" : undefined}>
+                    {isDelivery ? "Preferred store location" : "Pick up from"}
+                    <select
+                      required={!isDelivery}
+                      value={selectedLocation}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                    >
+                      <option value="">Select a location</option>
+                      {store.locations.map((loc) => (
+                        <option key={loc._id} value={loc._id}>
+                          {loc.name}{loc.address ? ` — ${loc.address}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+                <label className="checkout-fields__wide">
+                  Order notes <span className="checkout-optional">— optional</span>
+                  <textarea
+                    name="deliveryNotes"
+                    value={deliveryNotes}
+                    onChange={(event) => setDeliveryNotes(event.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Anything our team should know before delivering"
+                  />
+                </label>
+              </div>
+
+              <div className="checkout-payment">
+                <div className="checkout-payment__head">
+                  <Banknote />
+                  <div>
+                    <strong>Payment method</strong>
+                    <p>Cash on delivery is the only payment method for online orders.</p>
+                  </div>
+                </div>
+                <div className="checkout-payment__option">
+                  <span className="checkout-payment__radio" aria-hidden="true" />
+                  <div>
+                    <strong>Cash on Delivery</strong>
+                    <p>
+                      {isDelivery
+                        ? "Pay the rider in cash when your order arrives. Nothing is charged online."
+                        : "Pay in cash at the counter when you collect your order."}
+                    </p>
+                  </div>
+                  <b>{naira(total)}</b>
+                </div>
+              </div>
+
+              <div className="checkout-call-note">
+                <PhoneCall />
+                <div><strong>We call to confirm</strong><p>
+                  A store representative will call {form.phone ? form.phone : "the number above"} to
+                  confirm your order and {isDelivery ? "arrange delivery" : "let you know when it is ready"}.
+                  Please keep {naira(total)} ready in cash.
+                </p></div>
+              </div>
+
+              {status.message && (
+                <div
+                  className={`checkout-status ${status.type === "success" ? "is-success" : "is-error"}`}
+                  role={status.type === "error" ? "alert" : "status"}
+                >
+                  {status.message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || cart.length === 0}
+                className="checkout-submit"
+              >
+                {submitting ? "Placing your order..." : `Place order — pay ${naira(total)} on ${isDelivery ? "delivery" : "pickup"}`}
+              </button>
+            </form>
+
+            <aside className="checkout-summary">
+              <div className="checkout-panel-heading">
+                <div>
+                  <p>Order summary</p>
+                  <h2>Your cart{totalItems > 0 ? ` (${totalItems})` : ""}</h2>
+                </div>
+                <div><Truck /></div>
+              </div>
+
+              {cart.length === 0 ? (
+                <div className="market-empty">
+                  Your cart is empty.
+                </div>
+              ) : (
+                <div className="checkout-summary__items">
+                  {cart.map((item) => (
+                    <div key={item._id}>
+                      <div>
+                        <strong>{item.name}</strong>
+                        <p>
+                          {item.quantity} x {naira(item.price)}
+                        </p>
+                      </div>
+                      <strong>
+                        {naira(Number(item.price || 0) * Number(item.quantity || 0))}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="checkout-summary__totals">
+                <div>
+                  <span>Subtotal</span>
+                  <span>{naira(subtotal)}</span>
+                </div>
+                <div>
+                  <span>{isDelivery ? "Delivery" : "Store pickup"}</span>
+                  <span>
+                    {!isDelivery
+                      ? "Free"
+                      : deliveryQuote && !deliveryQuote.valid
+                        ? "Select an area"
+                        : deliveryFee > 0
+                          ? naira(deliveryFee)
+                          : "Free"}
+                  </span>
+                </div>
+                <div className="checkout-summary__total">
+                  <span>Total</span>
+                  <span>{naira(total)}</span>
+                </div>
+              </div>
+
+              {isDelivery && freeDeliveryThreshold > 0 && amountToFreeDelivery > 0 && (
+                <div className="checkout-summary__note checkout-summary__note--promo">
+                  <Truck />
+                  <span>Add {naira(amountToFreeDelivery)} more to qualify for free delivery.</span>
+                </div>
+              )}
+
+              {isDelivery && deliveryQuote?.eta && (
+                <div className="checkout-summary__note">
+                  <Truck />
+                  <span>Estimated delivery: {deliveryQuote.eta}</span>
+                </div>
+              )}
+
+              <div className="checkout-summary__note">
+                <Banknote />
+                <span>Pay {naira(total)} in cash when you receive your order.</span>
+              </div>
+              <div className="checkout-summary__note">
+                <MapPin />
+                <span>Orders are processed through the Ibile inventory workflow for fulfilment and stock control.</span>
+              </div>
+              <div className="checkout-summary__note checkout-summary__note--stock">
+                <PackageCheck />
+                <span>Your items are held in stock as soon as the order is placed.</span>
+              </div>
+            </aside>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

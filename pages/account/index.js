@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, Package, User, LogOut, ChevronLeft } from "lucide-react";
+import OrderHistory from "@/components/orders/OrderHistory";
+import { Heart, Package, User, LogOut } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -12,13 +13,17 @@ export default function AccountPage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ type: "", text: "" });
 
-  if (loading) return <div className="auth-page"><p>Loading...</p></div>;
+  // Redirecting during render warns in React and can loop; do it as an effect.
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.replace("/account/login");
+    }
+  }, [loading, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    router.replace("/account/login");
-    return null;
+  if (loading || !isAuthenticated) {
+    return <div className="auth-page"><p>Loading...</p></div>;
   }
 
   const handleEdit = () => {
@@ -29,13 +34,13 @@ export default function AccountPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setMessage("");
+    setMessage({ type: "", text: "" });
     try {
       await updateProfile(form);
       setEditing(false);
-      setMessage("Profile updated successfully");
+      setMessage({ type: "success", text: "Profile updated successfully" });
     } catch (err) {
-      setMessage(err.message);
+      setMessage({ type: "error", text: err.message });
     } finally {
       setSaving(false);
     }
@@ -78,7 +83,11 @@ export default function AccountPage() {
           {tab === "profile" && (
             <div className="account-section">
               <h2>Profile Details</h2>
-              {message && <div className="auth-error" style={{ background: message.includes("success") ? "#ecfdf5" : undefined, color: message.includes("success") ? "#065f46" : undefined }}>{message}</div>}
+              {message.text && (
+                <div className={`account-message ${message.type === "success" ? "is-success" : "is-error"}`} role="status">
+                  {message.text}
+                </div>
+              )}
 
               {editing ? (
                 <form onSubmit={handleSave} className="account-form">
@@ -87,7 +96,7 @@ export default function AccountPage() {
                   <label><span>Delivery address</span><textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} /></label>
                   <div className="account-form__actions">
                     <button type="submit" disabled={saving} className="auth-submit">{saving ? "Saving..." : "Save changes"}</button>
-                    <button type="button" onClick={() => setEditing(false)} className="auth-submit" style={{ background: "#6b7280" }}>Cancel</button>
+                    <button type="button" onClick={() => setEditing(false)} className="auth-submit auth-submit--ghost">Cancel</button>
                   </div>
                 </form>
               ) : (
@@ -97,7 +106,7 @@ export default function AccountPage() {
                   <div className="account-details__row"><span>Phone</span><strong>{customer.phone || "—"}</strong></div>
                   <div className="account-details__row"><span>Address</span><strong>{customer.address || "—"}</strong></div>
                   <div className="account-details__row"><span>Member since</span><strong>{customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("en-NG", { year: "numeric", month: "long" }) : "—"}</strong></div>
-                  <button onClick={handleEdit} className="auth-submit" style={{ marginTop: 16 }}>Edit profile</button>
+                  <button onClick={handleEdit} className="auth-submit account-details__edit">Edit profile</button>
                 </div>
               )}
             </div>
@@ -106,7 +115,7 @@ export default function AccountPage() {
           {tab === "orders" && (
             <div className="account-section">
               <h2>Order History</h2>
-              <p className="account-empty">Your order history will appear here once you complete a purchase.</p>
+              <OrderHistory />
             </div>
           )}
 

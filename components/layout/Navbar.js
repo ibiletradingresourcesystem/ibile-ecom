@@ -92,7 +92,7 @@ export default function Nav() {
         <div className="store-header__strip">
           <div className="store-header__strip-inner">
             {storePhone && <span>Call to order: {storePhone}</span>}
-            <span className="store-header__strip-message">Everyday essentials, reliable stock, straightforward ordering.</span>
+            <span className="store-header__strip-message">Cash on delivery &middot; Everyday essentials, reliable stock, straightforward ordering.</span>
           </div>
         </div>
       </header>
